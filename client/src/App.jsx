@@ -21,7 +21,6 @@ const App = () => {
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/project/:id" element={<ProjectDetails />} />
 

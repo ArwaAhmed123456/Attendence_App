@@ -104,19 +104,10 @@ const AdminLogin = () => {
                         {message && <p className="text-green-600 text-sm font-medium text-center bg-green-50 py-2 rounded-lg">{message}</p>}
                         <button
                             type="submit"
-                            className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-cyan-200 hover:bg-secondary transform hover:-translate-y-0.5 transition"
+                            className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-200 hover:bg-secondary transform hover:-translate-y-0.5 transition"
                         >
                             Login to Dashboard
                         </button>
-
-                        <div className="mt-8 pt-8 border-t border-slate-100 text-center">
-                            <p className="text-slate-500">
-                                Don't have an account?{" "}
-                                <Link to="/admin/signup" className="text-secondary font-bold hover:text-primary">
-                                    Create Account
-                                </Link>
-                            </p>
-                        </div>
                     </form>
                 )}
 
