@@ -30,10 +30,8 @@ const AdminDashboard = () => {
         fetchPendingRequests();
 
         // Initialize Socket.io
-        const socketHost = window.location.hostname.includes('onrender.com')
-            ? `https://${window.location.hostname}`
-            : `http://${window.location.hostname}:5000`;
-        const socket = io(socketHost);
+        // It will use the current host and port, matching the page's protocol (HTTPS in production)
+        const socket = io();
 
         socket.on('newAttendance', (data) => {
             toast.success(
