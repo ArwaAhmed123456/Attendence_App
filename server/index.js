@@ -43,7 +43,7 @@ app.use('/api/requests', requestsRouter);
 app.use('/api/contact', contactRoutes);
 
 // Catch-all handler for React SPA (must be last)
-app.get(/(.*)/, (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
