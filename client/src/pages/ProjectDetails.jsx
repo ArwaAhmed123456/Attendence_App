@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, Search, Download, Users, Calendar, Settings, Lock, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Search, Download, Users, Calendar, Settings, Lock, Eye, EyeOff, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -15,6 +15,11 @@ const ProjectDetails = () => {
     const [showPassModal, setShowPassModal] = useState(false);
     const [newPass, setNewPass] = useState({ password: '', confirm: '' });
     const [showPass, setShowPass] = useState(false);
+
+    // Edit/Delete State
+    const [editingLog, setEditingLog] = useState(null);
+    const [deletingLog, setDeletingLog] = useState(null);
+    const [confirmName, setConfirmName] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -47,6 +52,49 @@ const ProjectDetails = () => {
             setNewPass({ password: '', confirm: '' });
         } catch (err) {
             toast.error("Update failed");
+        }
+    };
+
+    // Edit Log Functions
+    const handleEditClick = (log) => {
+        setEditingLog({ ...log });
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditingLog(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleEditSave = async () => {
+        try {
+            await api.put(`/logs/${editingLog.id}`, editingLog);
+            toast.success("Log updated successfully");
+            setEditingLog(null);
+            fetchData();
+        } catch (err) {
+            toast.error("Failed to update log");
+        }
+    };
+
+    // Delete Log Functions
+    const handleDeleteClick = (log) => {
+        setDeletingLog(log);
+        setConfirmName('');
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (confirmName !== deletingLog.name) {
+            toast.error("Name does not match");
+            return;
+        }
+
+        try {
+            await api.delete(`/logs/${deletingLog.id}`);
+            toast.success("Log deleted successfully");
+            setDeletingLog(null);
+            fetchData();
+        } catch (err) {
+            toast.error("Failed to delete log");
         }
     };
 
@@ -107,11 +155,100 @@ const ProjectDetails = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             <Toaster position="top-right" />
+
+            {/* Edit Modal */}
+            {editingLog && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-slate-800">Edit Log</h3>
+                            <button onClick={() => setEditingLog(null)}><X className="text-slate-400 hover:text-red-500" /></button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Name</label>
+                                <input name="name" value={editingLog.name} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-cyan-500 focus:outline-none" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Trade</label>
+                                    <input name="trade" value={editingLog.trade || ''} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Car Reg</label>
+                                    <input name="car_reg" value={editingLog.car_reg || ''} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Time In</label>
+                                    <input type="time" name="time_in" value={editingLog.time_in} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Time Out</label>
+                                    <input type="time" name="time_out" value={editingLog.time_out} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Date</label>
+                                <input type="date" name="date" value={editingLog.date} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50" />
+                            </div>
+                            <button onClick={handleEditSave} className="w-full bg-cyan-600 text-white py-3 rounded-lg font-bold hover:bg-cyan-700 transition flex items-center justify-center gap-2 mt-4">
+                                <Save size={18} /> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deletingLog && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-4 border-red-50">
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <div className="bg-red-100 p-4 rounded-full mb-4">
+                                <AlertTriangle className="text-red-500 w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800">Confirm Deletion</h3>
+                            <p className="text-slate-500 mt-2 text-sm">
+                                To confirm deletion, please type the user name below:<br />
+                                <span className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded mt-1 inline-block">{deletingLog.name}</span>
+                            </p>
+                        </div>
+
+                        <input
+                            value={confirmName}
+                            onChange={(e) => setConfirmName(e.target.value)}
+                            placeholder="Type user name here"
+                            className="w-full p-3 border-2 border-slate-200 rounded-lg mb-6 text-center font-bold focus:border-red-500 focus:outline-none"
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeletingLog(null)}
+                                className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-lg transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                disabled={confirmName !== deletingLog.name}
+                                className={`flex-1 py-3 font-bold text-white rounded-lg transition flex items-center justify-center gap-2
+                                    ${confirmName === deletingLog.name ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-200' : 'bg-slate-200 cursor-not-allowed'}
+                                `}
+                            >
+                                <Trash2 size={18} /> Delete Log
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <nav className="bg-white shadow-sm p-4 px-12 border-b border-slate-100 sticky top-0 z-50 flex justify-between items-center">
                 <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-500 hover:text-cyan-600 font-bold transition">
                     <ArrowLeft size={20} /> Back to Dashboard
                 </button>
-                <img src="/logo.png" className="w-8 h-8 rounded-lg" alt="Logo" />
+                <img src="/logo.png" className="w-8 h-8" alt="Logo" />
             </nav>
 
             <div className="max-w-7xl mx-auto p-8 lg:p-12">
@@ -125,12 +262,7 @@ const ProjectDetails = () => {
                     </div>
 
                     <div className="flex gap-4">
-                        <button
-                            onClick={() => setShowPassModal(true)}
-                            className="bg-white text-slate-700 px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-slate-50 border border-slate-200 font-bold transition shadow-sm"
-                        >
-                            <Lock size={18} /> Password
-                        </button>
+
                         <button
                             onClick={downloadPDF}
                             className="bg-cyan-600 text-white px-8 py-3 rounded-2xl flex items-center gap-2 hover:bg-cyan-700 transition shadow-lg shadow-cyan-200 font-bold"
@@ -196,11 +328,12 @@ const ProjectDetails = () => {
                                 <th className="p-4">Time In</th>
                                 <th className="p-4">Time Out</th>
                                 <th className="p-4">Hrs</th>
+                                <th className="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredLogs.map(log => (
-                                <tr key={log.id} className="hover:bg-gray-50">
+                                <tr key={log.id} className="hover:bg-gray-50 group">
                                     <td className="p-4 text-gray-600">{log.date}</td>
                                     <td className="p-4 font-medium text-gray-900">{log.name}</td>
                                     <td className="p-4 text-gray-600">{log.trade}</td>
@@ -213,11 +346,29 @@ const ProjectDetails = () => {
                                     <td className="p-4 text-gray-600">{log.time_in}</td>
                                     <td className="p-4 text-gray-600">{log.time_out}</td>
                                     <td className="p-4 font-bold text-gray-800">{log.hours}</td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleEditClick(log)}
+                                                className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition"
+                                                title="Edit Log"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteClick(log)}
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                title="Delete Log"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                             {filteredLogs.length === 0 && (
                                 <tr>
-                                    <td colSpan="7" className="p-8 text-center text-gray-400">No logs found</td>
+                                    <td colSpan="9" className="p-8 text-center text-gray-400">No logs found</td>
                                 </tr>
                             )}
                         </tbody>

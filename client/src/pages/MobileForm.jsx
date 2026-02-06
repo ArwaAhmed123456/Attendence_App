@@ -213,7 +213,7 @@ const MobileForm = () => {
                 <p className="text-gray-500 mb-8">Your daily log has been recorded securely.</p>
                 <button
                     onClick={handleReset}
-                    className="bg-slate-900 text-white font-medium py-3 px-8 rounded-lg shadow-md hover:bg-slate-800 transition w-full max-w-xs"
+                    className="bg-primary text-white font-medium py-3 px-8 rounded-lg shadow-md hover:bg-secondary transition w-full max-w-xs"
                 >
                     Return to Home
                 </button>
@@ -285,7 +285,7 @@ const MobileForm = () => {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition ${fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition ${fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
                                     placeholder="John Doe"
                                 />
                             </div>
@@ -300,7 +300,7 @@ const MobileForm = () => {
                                     name="trade"
                                     value={formData.trade}
                                     onChange={handleChange}
-                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition ${fieldErrors.trade ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition ${fieldErrors.trade ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
                                     placeholder="Electrician / Acme Corp"
                                 />
                             </div>
@@ -315,7 +315,7 @@ const MobileForm = () => {
                                     name="car_reg"
                                     value={formData.car_reg}
                                     onChange={handleChange}
-                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition ${fieldErrors.car_reg ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                                    className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition ${fieldErrors.car_reg ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
                                     placeholder="ABC-123"
                                 />
                             </div>
@@ -337,7 +337,7 @@ const MobileForm = () => {
                                         name="date"
                                         value={formData.date}
                                         onChange={handleDateChange}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                     />
                                 </div>
                             </div>
@@ -351,7 +351,7 @@ const MobileForm = () => {
                                         name="time_in"
                                         value={formData.time_in}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-2 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 ${fieldErrors.time_in ? 'border-red-300' : 'border-gray-300'}`}
+                                        className={`w-full pl-10 pr-2 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.time_in ? 'border-red-300' : 'border-gray-300'}`}
                                     />
                                 </div>
                             </div>
@@ -365,7 +365,7 @@ const MobileForm = () => {
                                         name="time_out"
                                         value={formData.time_out}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-2 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 ${fieldErrors.time_out ? 'border-red-300' : 'border-gray-300'}`}
+                                        className={`w-full pl-10 pr-2 py-2.5 bg-white border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.time_out ? 'border-red-300' : 'border-gray-300'}`}
                                     />
                                 </div>
                             </div>
@@ -384,7 +384,7 @@ const MobileForm = () => {
                                 rows="3"
                                 value={formData.reason}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                                className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                 placeholder="Regular daily work..."
                             ></textarea>
                         </div>
@@ -393,7 +393,7 @@ const MobileForm = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-slate-900 text-white text-lg font-bold py-4 rounded-xl shadow-lg hover:bg-slate-800 transition active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full bg-primary text-white text-lg font-bold py-4 rounded-xl shadow-lg hover:bg-secondary transition active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {loading ? 'Submitting...' : 'Submit Log'}
                     </button>
@@ -408,7 +408,7 @@ const MobileForm = () => {
             {showPermissionModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-xl p-6 w-full max-w-sm text-center">
-                        <Calendar size={48} className="mx-auto text-blue-500 mb-4" />
+                        <Calendar size={48} className="mx-auto text-primary mb-4" />
                         <h3 className="text-xl font-bold mb-2">Restricted Date Selected</h3>
                         <p className="text-gray-600 mb-6 text-sm">
                             You have selected a date that is not today ({restrictedDate}).
@@ -420,7 +420,7 @@ const MobileForm = () => {
                                 <p className="text-xs text-gray-500 mb-2">Ensure your name is entered in the form behind.</p>
                                 <button
                                     onClick={submitPermissionRequest}
-                                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+                                    className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-secondary transition"
                                 >
                                     Request Permission
                                 </button>
@@ -439,7 +439,7 @@ const MobileForm = () => {
 
                         {permissionStatus === 'pending' && (
                             <div className="space-y-4">
-                                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
                                 <p className="font-bold text-gray-800">Waiting for Admin Approval...</p>
                                 <p className="text-xs text-gray-500">Please ask an admin to approve your request.</p>
                             </div>

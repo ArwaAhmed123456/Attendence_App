@@ -61,7 +61,7 @@ const AdminLogin = () => {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white p-10 rounded-3xl shadow-2xl border border-slate-100">
                 <div className="flex justify-center mb-8">
-                    <img src="/logo.png" className="w-24 h-24 rounded-2xl shadow-lg border-4 border-white" alt="Logo" />
+                    <img src="/logo.png" className="w-24 h-24" alt="Logo" />
                 </div>
                 <h2 className="text-3xl font-extrabold text-center mb-2 text-slate-900 tracking-tight">
                     {view === 'login' ? 'Admin Portal' : view === 'forgot' ? 'Reset Password' : 'New Password'}
@@ -75,7 +75,7 @@ const AdminLogin = () => {
                             <input
                                 type="email"
                                 required
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
@@ -85,7 +85,7 @@ const AdminLogin = () => {
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none pr-10"
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none pr-10"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
@@ -98,13 +98,13 @@ const AdminLogin = () => {
                             </button>
                         </div>
                         <div className="text-right">
-                            <button type="button" onClick={() => setView('forgot')} className="text-sm text-cyan-600 hover:text-cyan-700 font-bold">Forgot Password?</button>
+                            <button type="button" onClick={() => setView('forgot')} className="text-sm text-secondary hover:text-primary font-bold">Forgot Password?</button>
                         </div>
                         {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
                         {message && <p className="text-green-600 text-sm font-medium text-center bg-green-50 py-2 rounded-lg">{message}</p>}
                         <button
                             type="submit"
-                            className="w-full bg-cyan-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-cyan-200 hover:bg-cyan-700 transform hover:-translate-y-0.5 transition"
+                            className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-cyan-200 hover:bg-secondary transform hover:-translate-y-0.5 transition"
                         >
                             Login to Dashboard
                         </button>
@@ -112,7 +112,7 @@ const AdminLogin = () => {
                         <div className="mt-8 pt-8 border-t border-slate-100 text-center">
                             <p className="text-slate-500">
                                 Don't have an account?{" "}
-                                <Link to="/admin/signup" className="text-cyan-600 font-bold hover:text-cyan-700">
+                                <Link to="/admin/signup" className="text-secondary font-bold hover:text-primary">
                                     Create Account
                                 </Link>
                             </p>
@@ -128,7 +128,7 @@ const AdminLogin = () => {
                             <input
                                 type="email"
                                 required
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
@@ -146,7 +146,7 @@ const AdminLogin = () => {
                         )}
                         <button
                             type="submit"
-                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-secondary transition"
                         >
                             Send Reset Token
                         </button>
@@ -162,7 +162,7 @@ const AdminLogin = () => {
                             <input
                                 type={showNewPassword ? 'text' : 'password'}
                                 required
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none pr-10"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                             />

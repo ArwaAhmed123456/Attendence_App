@@ -108,4 +108,81 @@ router.get('/project/:id', verifyToken, (req, res) => {
     res.json({ project, logs });
 });
 
+// PUT /api/logs/:id - Update log (Admin)
+router.put('/:id', verifyToken, (req, res) => {
+    const logId = req.params.id;
+    const {
+        name,
+        trade,
+        car_reg,
+        user_type,
+        time_in,
+        time_out,
+        reason,
+        date
+    } = req.body;
+
+    if (!name || !time_in || !time_out || !date) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Recalculate hours
+    let hours = 0;
+    try {
+        const start = new Date(`${date}T${time_in}`);
+        const end = new Date(`${date}T${time_out}`);
+        const diffMs = end - start;
+        hours = diffMs / (1000 * 60 * 60);
+        if (hours < 0) hours = 0;
+        hours = parseFloat(hours.toFixed(2));
+    } catch (e) {
+        console.error('Time calc error', e);
+    }
+
+    try {
+        const stmt = db.prepare(`
+            UPDATE logs 
+            SET name = ?, trade = ?, car_reg = ?, user_type = ?, time_in = ?, time_out = ?, hours = ?, reason = ?, date = ?
+            WHERE id = ?
+        `);
+
+        const info = stmt.run(
+            name,
+            trade || '',
+            car_reg || '',
+            user_type || 'Employee',
+            time_in,
+            time_out,
+            hours,
+            reason || '',
+            date,
+            logId
+        );
+
+        if (info.changes === 0) return res.status(404).json({ error: 'Log not found' });
+
+        res.json({ success: true, message: 'Log updated successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// DELETE /api/logs/:id - Delete log (Admin)
+router.delete('/:id', verifyToken, (req, res) => {
+    const logId = req.params.id;
+
+    try {
+        const stmt = db.prepare('DELETE FROM logs WHERE id = ?');
+        const info = stmt.run(logId);
+
+        if (info.changes === 0) return res.status(404).json({ error: 'Log not found' });
+
+        res.json({ success: true, message: 'Log deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 module.exports = router;

@@ -133,7 +133,36 @@ const sendPasswordResetEmail = async (email, projectName, resetToken) => {
     }
 };
 
+// Send contact form email (User -> Admin)
+const sendContactEmail = async (userEmail, query) => {
+    const mailOptions = {
+        from: process.env.EMAIL_FROM || `"Attendance Pro" <${process.env.EMAIL_USER}>`,
+        to: process.env.EMAIL_USER, // Send TO the admin
+        replyTo: userEmail, // Allow admin to reply directly to user
+        subject: `New Query from Attendance App User`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #0891b2;">New User Query</h2>
+                <p><strong>From:</strong> ${userEmail}</p>
+                <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #0891b2; margin: 20px 0;">
+                    <p style="white-space: pre-wrap;">${query}</p>
+                </div>
+                <p style="font-size: 0.9em; color: #666;">You can reply directly to this email to respond to the user.</p>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        console.error('Contact email sending error:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 module.exports = {
     generateResetToken,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendContactEmail
 };

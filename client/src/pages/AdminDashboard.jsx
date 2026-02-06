@@ -18,7 +18,7 @@ const AdminDashboard = () => {
     const [rememberPassword, setRememberPassword] = useState(false);
     const [editProject, setEditProject] = useState({ name: '', code: '' });
     const [newProject, setNewProject] = useState({ name: '', code: '', password: '', confirmPassword: '', admin_email: '' });
-    const [resetFlow, setResetFlow] = useState({ step: 1, email: '', code: '', token: '', newPassword: '', confirmPassword: '' });
+    const [resetFlow, setResetFlow] = useState({ step: 1, code: '', token: '', newPassword: '', confirmPassword: '', targetEmail: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formError, setFormError] = useState('');
@@ -140,23 +140,28 @@ const AdminDashboard = () => {
             }
 
             setShowAuthModal(false);
-            navigate(`/admin/projects/${selectedProject.id}`);
+            navigate(`/admin/project/${selectedProject.id}`);
         } catch (err) {
             setFormError('Incorrect project password');
         }
     };
 
     const handleDeleteProject = async (project) => {
+        console.log('Attempting to delete project:', project.id, project.name);
         if (window.confirm(`Are you sure you want to delete "${project.name}"? This will delete all associated logs and cannot be undone!`)) {
             try {
-                await api.delete(`/projects/${project.id}`);
+                console.log('Confirmed deletion for project:', project.id);
+                const res = await api.delete(`/projects/${project.id}`);
+                console.log('Delete response:', res.data);
                 toast.success('Project deleted successfully');
                 fetchProjects();
-                // Clear saved password if exists
                 localStorage.removeItem(`project_pass_${project.id}`);
             } catch (err) {
-                toast.error('Failed to delete project');
+                console.error('Delete error:', err.response?.data || err.message);
+                toast.error('Failed to delete project: ' + (err.response?.data?.error || 'Server error'));
             }
+        } else {
+            console.log('Deletion cancelled by user');
         }
     };
 
@@ -184,8 +189,15 @@ const AdminDashboard = () => {
     const openResetModal = () => {
         setShowAuthModal(false);
         setShowResetModal(true);
-        setResetFlow({ step: 1, email: '', code: selectedProject.code, token: '', newPassword: '', confirmPassword: '' });
+        setResetFlow({ step: 1, code: selectedProject.code, token: '', newPassword: '', confirmPassword: '', targetEmail: '' });
         setFormError('');
+    };
+
+    const generateRandomCode = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let random = '';
+        for (let i = 0; i < 4; i++) random += chars.charAt(Math.floor(Math.random() * chars.length));
+        setNewProject(prev => ({ ...prev, code: `TRIPOD-${random}` }));
     };
 
     const handleSendResetCode = async () => {
@@ -193,11 +205,10 @@ const AdminDashboard = () => {
         setFormError('');
         try {
             const res = await api.post('/projects/forgot-password', {
-                code: resetFlow.code,
-                admin_email: resetFlow.email
+                code: resetFlow.code
             });
-            toast.success('Verification code sent to your email!');
-            setResetFlow({ ...resetFlow, step: 2 });
+            toast.success('Verification code sent to email!');
+            setResetFlow({ ...resetFlow, step: 2, targetEmail: res.data.email });
         } catch (err) {
             setFormError(err.response?.data?.error || 'Failed to send reset code');
         } finally {
@@ -211,7 +222,6 @@ const AdminDashboard = () => {
         try {
             await api.post('/projects/verify-reset-token', {
                 code: resetFlow.code,
-                admin_email: resetFlow.email,
                 reset_token: resetFlow.token
             });
             setResetFlow({ ...resetFlow, step: 3 });
@@ -232,7 +242,6 @@ const AdminDashboard = () => {
         try {
             await api.post('/projects/reset-password', {
                 code: resetFlow.code,
-                admin_email: resetFlow.email,
                 reset_token: resetFlow.token,
                 new_password: resetFlow.newPassword
             });
@@ -252,7 +261,7 @@ const AdminDashboard = () => {
             <Toaster position="top-right" />
             <nav className="bg-slate-900 shadow-xl p-4 flex justify-between items-center px-12 sticky top-0 z-50">
                 <div className="flex items-center gap-3">
-                    <img src="/logo.png" className="w-10 h-10 rounded-lg" alt="Logo" />
+                    <img src="/logo.png" className="w-10 h-10" alt="Logo" />
                     <h1 className="text-xl font-bold text-white tracking-tight">Attendance Pro</h1>
                 </div>
                 <button onClick={handleLogout} className="text-slate-300 hover:text-white flex items-center gap-2 font-medium transition">
@@ -408,13 +417,22 @@ const AdminDashboard = () => {
                                 onChange={e => setNewProject({ ...newProject, name: e.target.value })}
                                 required
                             />
-                            <input
-                                placeholder="Project Code (e.g. SOL-001)"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={newProject.code}
-                                onChange={e => setNewProject({ ...newProject, code: e.target.value.toUpperCase() })}
-                                required
-                            />
+                            <div className="flex gap-2">
+                                <input
+                                    placeholder="Project Code (e.g. SITE-001)"
+                                    className="flex-1 px-4 py-2 border rounded-lg uppercase"
+                                    value={newProject.code}
+                                    onChange={e => setNewProject({ ...newProject, code: e.target.value.toUpperCase() })}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={generateRandomCode}
+                                    className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200"
+                                >
+                                    ✨ Generate
+                                </button>
+                            </div>
                             <input
                                 placeholder="Admin Email (for password recovery)"
                                 type="email"
@@ -621,21 +639,11 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Step 1: Enter Email */}
+                        {/* Step 1: Confirm Destination */}
                         {resetFlow.step === 1 && (
                             <div className="space-y-4">
-                                <p className="text-slate-600">Enter the admin email associated with this project to receive a verification code.</p>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Admin Email</label>
-                                    <input
-                                        type="email"
-                                        placeholder="admin@example.com"
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                                        value={resetFlow.email}
-                                        onChange={(e) => setResetFlow({ ...resetFlow, email: e.target.value })}
-                                        autoFocus
-                                    />
-                                </div>
+                                <p className="text-slate-600 text-sm">A verification code will be sent to the administrator email associated with this project for security.</p>
+
                                 {formError && <p className="text-red-500 text-sm">{formError}</p>}
                                 <div className="flex gap-4 mt-6">
                                     <button
@@ -650,10 +658,10 @@ const AdminDashboard = () => {
                                     </button>
                                     <button
                                         onClick={handleSendResetCode}
-                                        disabled={resetLoading || !resetFlow.email}
+                                        disabled={resetLoading}
                                         className="flex-1 bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition shadow-lg disabled:opacity-50"
                                     >
-                                        {resetLoading ? 'Sending...' : 'Send Code'}
+                                        {resetLoading ? 'Sending...' : 'Send Reset Code'}
                                     </button>
                                 </div>
                             </div>
@@ -664,7 +672,7 @@ const AdminDashboard = () => {
                             <div className="space-y-4">
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                                     <p className="text-green-800 text-sm">
-                                        ✅ Verification code sent to <strong>{resetFlow.email}</strong>
+                                        ✅ Verification code sent to <strong>{resetFlow.targetEmail}</strong>
                                     </p>
                                 </div>
                                 <p className="text-slate-600">Enter the 6-digit code from your email. The code expires in 15 minutes.</p>

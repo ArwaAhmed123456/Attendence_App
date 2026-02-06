@@ -62,7 +62,7 @@ router.post('/signup', (req, res) => {
     }
 });
 // POST /api/auth/forgot-password
-router.post('/forgot-password', (req, res) => {
+router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
     const stmt = db.prepare('SELECT * FROM admins WHERE email = ?');
     const admin = stmt.get(email);
@@ -78,13 +78,23 @@ router.post('/forgot-password', (req, res) => {
     const update = db.prepare('UPDATE admins SET reset_token = ?, reset_expires = ? WHERE id = ?');
     update.run(token, expires.toISOString(), admin.id);
 
-    // Mock sending email
-    console.log(`[RESET] Token for ${email}: ${token}`);
+    // Send email using the service
+    try {
+        const { sendPasswordResetEmail } = require('../services/emailService');
+        await sendPasswordResetEmail(email, token);
 
-    res.json({
-        message: 'If that email exists, a reset link has been sent.',
-        mockToken: token // ONLY for development visibility
-    });
+        console.log(`[RESET] Token email sent to ${email}`);
+
+        res.json({
+            message: 'If that email exists, a reset link has been sent.',
+            mockToken: process.env.NODE_ENV === 'development' ? token : undefined
+        });
+    } catch (error) {
+        console.error('Password reset email error:', error);
+        // Even on error, we might want to return 200 to prevent user enumeration, 
+        // but for now let's return 500 to help debugging if config is wrong
+        return res.status(500).json({ error: 'Failed to send reset email. Check server logs.' });
+    }
 });
 
 // POST /api/auth/reset-password

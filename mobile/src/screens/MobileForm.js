@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator, Alert, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, User, Briefcase, Car, Calendar, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { Clock, User, Briefcase, Car, Calendar, ArrowLeft, CheckCircle, AlertCircle, Lock } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../services/api';
@@ -47,6 +47,15 @@ const MobileForm = ({ navigation }) => {
 
     useEffect(() => {
         loadProject();
+
+        // Auto-fill Time In with current time on mount
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        setFormData(prev => ({
+            ...prev,
+            time_in: `${hours}:${minutes}`
+        }));
     }, []);
 
     const loadProject = async () => {
@@ -207,13 +216,13 @@ const MobileForm = ({ navigation }) => {
         return (
             <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center p-6 text-center">
                 <StyledView className="bg-cyan-100 p-6 rounded-full border border-cyan-200 shadow-sm mb-6">
-                    <CheckCircle size={48} color="#0891b2" />
+                    <CheckCircle size={48} color="#00afca" />
                 </StyledView>
                 <StyledText className="text-2xl font-bold text-gray-900 mb-2">Submission Successful</StyledText>
                 <StyledText className="text-gray-500 mb-8 text-center px-4">Your daily log has been recorded securely in the Attendance System.</StyledText>
                 <StyledTouchableOpacity
                     onPress={() => navigation.navigate('Landing')}
-                    className="bg-cyan-600 py-4 px-12 rounded-2xl shadow-lg border-b-4 border-cyan-700"
+                    className="bg-primary py-4 px-12 rounded-2xl shadow-lg border-b-4 border-secondary"
                 >
                     <StyledText className="text-white font-bold text-lg">Return to Home</StyledText>
                 </StyledTouchableOpacity>
@@ -229,7 +238,7 @@ const MobileForm = ({ navigation }) => {
                         <ArrowLeft size={20} color="#64748b" />
                     </StyledTouchableOpacity>
                     <StyledView>
-                        <StyledText className="text-xs font-bold text-cyan-600 uppercase leading-none mb-1">{project.code}</StyledText>
+                        <StyledText className="text-xs font-bold text-primary uppercase leading-none mb-1">{project.code}</StyledText>
                         <StyledText className="text-lg font-bold text-slate-900 leading-none" numberOfLines={1}>{project.name}</StyledText>
                     </StyledView>
                 </StyledView>
@@ -267,7 +276,7 @@ const MobileForm = ({ navigation }) => {
 
                     <StyledView className="mb-4">
                         <StyledText className="text-sm font-medium text-slate-700 mb-2">Full Name *</StyledText>
-                        <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-cyan-500">
+                        <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-primary">
                             <User size={18} color="#94a3b8" />
                             <StyledTextInput
                                 className="flex-1 ml-3 text-slate-900"
@@ -281,7 +290,7 @@ const MobileForm = ({ navigation }) => {
 
                     <StyledView className="mb-4">
                         <StyledText className="text-sm font-medium text-slate-700 mb-2">Trade / Company *</StyledText>
-                        <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-cyan-500">
+                        <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-primary">
                             <Briefcase size={18} color="#94a3b8" />
                             <StyledTextInput
                                 className="flex-1 ml-3 text-slate-900"
@@ -295,7 +304,7 @@ const MobileForm = ({ navigation }) => {
 
                     <StyledView>
                         <StyledText className="text-sm font-medium text-slate-700 mb-2">Car Registration *</StyledText>
-                        <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-cyan-500">
+                        <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-primary">
                             <Car size={18} color="#94a3b8" />
                             <StyledTextInput
                                 className="flex-1 ml-3 text-slate-900"
@@ -312,14 +321,12 @@ const MobileForm = ({ navigation }) => {
                     <StyledText className="text-xs font-bold text-slate-400 uppercase mb-4">Entry Log</StyledText>
 
                     <StyledView className="mb-4">
-                        <StyledText className="text-sm font-medium text-slate-700 mb-2">Date *</StyledText>
-                        <StyledTouchableOpacity onPress={() => setShowDatePicker(true)}>
-                            <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                                <Calendar size={18} color="#94a3b8" />
-                                <StyledText className="flex-1 ml-3 text-slate-900">{formData.date || 'Select Date'}</StyledText>
-                            </StyledView>
-                        </StyledTouchableOpacity>
-                        {fieldErrors.date && <StyledText className="text-red-500 text-xs mt-1 ml-1">{fieldErrors.date}</StyledText>}
+                        <StyledText className="text-sm font-medium text-slate-700 mb-2">Date (Locked)</StyledText>
+                        <StyledView className="flex-row items-center bg-slate-100 border border-slate-200 rounded-xl px-4 py-3">
+                            <Calendar size={18} color="#94a3b8" />
+                            <StyledText className="flex-1 ml-3 text-slate-500 font-bold">{formData.date || 'Today'}</StyledText>
+                            <Lock size={16} color="#94a3b8" />
+                        </StyledView>
                     </StyledView>
 
                     {showDatePicker && (
@@ -333,14 +340,12 @@ const MobileForm = ({ navigation }) => {
 
                     <StyledView className="flex-row gap-4 mb-4">
                         <StyledView className="flex-1">
-                            <StyledText className="text-sm font-medium text-slate-700 mb-2">Time In *</StyledText>
-                            <StyledTouchableOpacity onPress={() => setShowTimeInPicker(true)}>
-                                <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                                    <Clock size={16} color="#94a3b8" />
-                                    <StyledText className="flex-1 ml-2 text-slate-900">{formData.time_in || '08:00'}</StyledText>
-                                </StyledView>
-                            </StyledTouchableOpacity>
-                            {fieldErrors.time_in && <StyledText className="text-red-500 text-xs mt-1 ml-1">{fieldErrors.time_in}</StyledText>}
+                            <StyledText className="text-sm font-medium text-slate-700 mb-2">Time In (Auto)</StyledText>
+                            <StyledView className="flex-row items-center bg-slate-100 border border-slate-200 rounded-xl px-4 py-3">
+                                <Clock size={16} color="#94a3b8" />
+                                <StyledText className="flex-1 ml-2 text-slate-500 font-bold">{formData.time_in || '--:--'}</StyledText>
+                                <Lock size={16} color="#94a3b8" />
+                            </StyledView>
                         </StyledView>
 
                         <StyledView className="flex-1">
@@ -348,7 +353,7 @@ const MobileForm = ({ navigation }) => {
                             <StyledTouchableOpacity onPress={() => setShowTimeOutPicker(true)}>
                                 <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
                                     <Clock size={16} color="#94a3b8" />
-                                    <StyledText className="flex-1 ml-2 text-slate-900">{formData.time_out || '17:00'}</StyledText>
+                                    <StyledText className="flex-1 ml-2 text-slate-900">{formData.time_out || 'Select'}</StyledText>
                                 </StyledView>
                             </StyledTouchableOpacity>
                             {fieldErrors.time_out && <StyledText className="text-red-500 text-xs mt-1 ml-1">{fieldErrors.time_out}</StyledText>}
@@ -376,8 +381,8 @@ const MobileForm = ({ navigation }) => {
                     )}
 
                     <StyledView className="bg-cyan-50 flex-row justify-between items-center p-4 rounded-xl border border-cyan-100 mb-4">
-                        <StyledText className="text-cyan-700 font-bold">Total Duration</StyledText>
-                        <StyledText className="text-xl font-bold text-cyan-900">{calculatedHours} hrs</StyledText>
+                        <StyledText className="text-secondary font-bold">Total Duration</StyledText>
+                        <StyledText className="text-xl font-bold text-secondary">{calculatedHours} hrs</StyledText>
                     </StyledView>
 
                     <StyledView>
@@ -397,7 +402,7 @@ const MobileForm = ({ navigation }) => {
                 <StyledTouchableOpacity
                     onPress={handleSubmit}
                     disabled={loading}
-                    className={`bg-cyan-600 py-5 rounded-2xl shadow-xl flex-row justify-center items-center mb-10 border-b-4 border-cyan-800 ${loading ? 'opacity-70' : ''}`}
+                    className={`bg-primary py-5 rounded-2xl shadow-xl flex-row justify-center items-center mb-10 border-b-4 border-secondary ${loading ? 'opacity-70' : ''}`}
                 >
                     {loading ? (
                         <ActivityIndicator color="white" />
@@ -412,7 +417,7 @@ const MobileForm = ({ navigation }) => {
                 <StyledView className="flex-1 bg-slate-900/80 justify-center p-6 backdrop-blur-sm">
                     <StyledView className="bg-white rounded-3xl p-8 items-center shadow-2xl">
                         <StyledView className="bg-cyan-100 p-5 rounded-full mb-4">
-                            <Calendar size={48} color="#0891b2" />
+                            <Calendar size={48} color="#00afca" />
                         </StyledView>
                         <StyledText className="text-2xl font-bold text-slate-900">Approval Required</StyledText>
                         <StyledText className="text-slate-500 text-center mt-3 text-base leading-relaxed">
@@ -423,7 +428,7 @@ const MobileForm = ({ navigation }) => {
                             <StyledView className="w-full mt-8">
                                 <StyledTouchableOpacity
                                     onPress={submitPermissionRequest}
-                                    className="bg-cyan-600 py-4 rounded-2xl shadow-lg shadow-cyan-200 border-b-2 border-cyan-700"
+                                    className="bg-primary py-4 rounded-2xl shadow-lg shadow-cyan-200 border-b-2 border-secondary"
                                 >
                                     <StyledText className="text-white text-center font-bold text-lg">Send Request</StyledText>
                                 </StyledTouchableOpacity>
@@ -441,7 +446,7 @@ const MobileForm = ({ navigation }) => {
 
                         {permissionStatus === 'pending' && (
                             <StyledView className="mt-8 items-center">
-                                <ActivityIndicator color="#0891b2" size="large" />
+                                <ActivityIndicator color="#00afca" size="large" />
                                 <StyledText className="font-bold text-slate-800 text-lg mt-4 text-center">Waiting for Site Manager...</StyledText>
                                 <StyledText className="text-sm text-slate-400 mt-2 text-center text-center">This window will close automatically once approved.</StyledText>
                             </StyledView>

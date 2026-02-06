@@ -26,7 +26,7 @@ app.use(limiter);
 
 app.use(express.json());
 
-// Serve static files (for privacy policy)
+// Serve static files (React App)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
@@ -34,14 +34,17 @@ const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const logRoutes = require('./routes/logs');
 const requestsRouter = require('./routes/requests');
+const contactRoutes = require('./routes/contact');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/requests', requestsRouter);
+app.use('/api/contact', contactRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Attendance API Running');
+// Catch-all handler for React SPA (must be last)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const http = require('http');

@@ -142,23 +142,47 @@ router.put('/:id/password', verifyToken, (req, res) => {
 // DELETE /api/projects/:id - Delete a project
 router.delete('/:id', verifyToken, (req, res) => {
     const { id } = req.params;
+    console.log(`[DeleteProject] Starting deletion for ID: ${id}`);
 
     try {
-        // Delete all logs associated with this project first
-        const deleteLogsStmt = db.prepare('DELETE FROM logs WHERE project_code = (SELECT code FROM projects WHERE id = ?)');
-        deleteLogsStmt.run(id);
+        // Fetch project info first
+        const project = db.prepare('SELECT code FROM projects WHERE id = ?').get(id);
 
-        // Delete the project
-        const deleteProjectStmt = db.prepare('DELETE FROM projects WHERE id = ?');
-        const result = deleteProjectStmt.run(id);
+        if (!project) {
+            console.log(`[DeleteProject] Project with ID ${id} not found`);
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        const projectCode = project.code;
+        console.log(`[DeleteProject] Found project code: ${projectCode}`);
+
+        // Start a transaction if possible, or just run them sequentially
+        const deleteLogs = db.prepare('DELETE FROM logs WHERE project_id = ?');
+        const deleteDateReq = db.prepare('DELETE FROM date_requests WHERE project_code = ?');
+        const deleteStaffPins = db.prepare('DELETE FROM staff_pins WHERE project_id = ?');
+        const deleteProject = db.prepare('DELETE FROM projects WHERE id = ?');
+
+        // Execute deletions
+        const logsResult = deleteLogs.run(id);
+        console.log(`[DeleteProject] Deleted ${logsResult.changes} logs`);
+
+        const dateReqResult = deleteDateReq.run(projectCode);
+        console.log(`[DeleteProject] Deleted ${dateReqResult.changes} date requests`);
+
+        const staffPinsResult = deleteStaffPins.run(id);
+        console.log(`[DeleteProject] Deleted ${staffPinsResult.changes} staff pins`);
+
+        const result = deleteProject.run(id);
+        console.log(`[DeleteProject] Project deleted result changes: ${result.changes}`);
 
         if (result.changes === 0) {
             return res.status(404).json({ error: 'Project not found' });
         }
 
-        res.json({ message: 'Project and associated logs deleted successfully' });
+        res.json({ message: 'Project and all associated data deleted successfully' });
     } catch (err) {
-        res.status(500).json({ error: 'Database error' });
+        console.error('[DeleteProject] Error during deletion:', err);
+        res.status(500).json({ error: 'Database error: ' + err.message });
     }
 });
 
@@ -195,19 +219,21 @@ router.put('/:id', verifyToken, (req, res) => {
 
 // POST /api/projects/forgot-password - Initiate password reset
 router.post('/forgot-password', async (req, res) => {
-    const { code, admin_email } = req.body;
+    const { code } = req.body;
 
-    if (!code || !admin_email) {
-        return res.status(400).json({ error: 'Project code and admin email are required' });
+    if (!code) {
+        return res.status(400).json({ error: 'Project code is required' });
     }
 
     try {
-        const stmt = db.prepare('SELECT * FROM projects WHERE UPPER(TRIM(code)) = ? AND admin_email = ?');
-        const project = stmt.get(code.trim().toUpperCase(), admin_email);
+        const stmt = db.prepare('SELECT * FROM projects WHERE UPPER(TRIM(code)) = ?');
+        const project = stmt.get(code.trim().toUpperCase());
 
         if (!project) {
-            return res.status(404).json({ error: 'Project not found or email does not match' });
+            return res.status(404).json({ error: 'Project not found' });
         }
+
+        const admin_email = project.admin_email;
 
         // Generate 6-digit reset token
         const resetToken = generateResetToken();
@@ -233,15 +259,15 @@ router.post('/forgot-password', async (req, res) => {
 
 // POST /api/projects/verify-reset-token - Verify the reset token
 router.post('/verify-reset-token', (req, res) => {
-    const { code, admin_email, reset_token } = req.body;
+    const { code, reset_token } = req.body;
 
-    if (!code || !admin_email || !reset_token) {
-        return res.status(400).json({ error: 'All fields are required' });
+    if (!code || !reset_token) {
+        return res.status(400).json({ error: 'Code and Token are required' });
     }
 
     try {
-        const stmt = db.prepare('SELECT * FROM projects WHERE UPPER(TRIM(code)) = ? AND admin_email = ?');
-        const project = stmt.get(code.trim().toUpperCase(), admin_email);
+        const stmt = db.prepare('SELECT * FROM projects WHERE UPPER(TRIM(code)) = ?');
+        const project = stmt.get(code.trim().toUpperCase());
 
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });
@@ -268,15 +294,15 @@ router.post('/verify-reset-token', (req, res) => {
 
 // POST /api/projects/reset-password - Reset password with token
 router.post('/reset-password', (req, res) => {
-    const { code, admin_email, reset_token, new_password } = req.body;
+    const { code, reset_token, new_password } = req.body;
 
-    if (!code || !admin_email || !reset_token || !new_password) {
+    if (!code || !reset_token || !new_password) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
     try {
-        const stmt = db.prepare('SELECT * FROM projects WHERE UPPER(TRIM(code)) = ? AND admin_email = ?');
-        const project = stmt.get(code.trim().toUpperCase(), admin_email);
+        const stmt = db.prepare('SELECT * FROM projects WHERE UPPER(TRIM(code)) = ?');
+        const project = stmt.get(code.trim().toUpperCase());
 
         if (!project) {
             return res.status(404).json({ error: 'Project not found' });

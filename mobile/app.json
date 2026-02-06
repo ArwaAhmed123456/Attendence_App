@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Attendance Mobile App",
+    "name": "Tripod Services",
     "slug": "attendance-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -32,7 +32,8 @@
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
-      ]
+      ],
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
