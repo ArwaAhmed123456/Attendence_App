@@ -12,8 +12,11 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Mobile / Worker Routes */}
-        <Route path="/" element={<MobileLanding />} />
+        {/* Redirect Root to Admin Login */}
+        <Route path="/" element={<Navigate to="/admin/login" replace />} />
+
+        {/* Mobile Routes (Optional/Legacy - kept if needed via direct link) */}
+        <Route path="/mobile-landing" element={<MobileLanding />} />
         <Route path="/form" element={<MobileForm />} />
 
         {/* Admin Routes */}
