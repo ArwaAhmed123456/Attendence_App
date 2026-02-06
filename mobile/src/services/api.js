@@ -7,7 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Local Development URL (Your PC's IP)
 // Local Development URL (Your PC's IP)
 // Updated for Physical Device testing (Expo on Phone)
-const API_BASE_URL = 'http://172.17.40.34:5000/api';
+// Updated for Production worker distribution
+const API_BASE_URL = 'https://attendence-app-uzvt.onrender.com/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,

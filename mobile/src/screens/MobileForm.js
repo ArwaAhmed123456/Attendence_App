@@ -123,7 +123,10 @@ const MobileForm = ({ navigation }) => {
             });
             setSuccess(true);
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to submit log');
+            console.error('[MobileForm] Submission Error:', err);
+            console.log('[MobileForm] Error response data:', err.response?.data);
+            const detail = err.response?.data?.error || err.message || 'Unknown network error';
+            setError(`Submission Failed: ${detail}`);
         } finally {
             setLoading(false);
         }

@@ -90,6 +90,21 @@ const initDb = () => {
     db.exec("ALTER TABLE projects ADD COLUMN reset_token_expiry INTEGER");
   }
 
+  // Migration for logs table
+  const logsInfo = db.prepare("PRAGMA table_info(logs)").all();
+  if (!logsInfo.find(c => c.name === 'trade')) {
+    db.exec("ALTER TABLE logs ADD COLUMN trade TEXT");
+    console.log('[Migration] Added column "trade" to logs table');
+  }
+  if (!logsInfo.find(c => c.name === 'car_reg')) {
+    db.exec("ALTER TABLE logs ADD COLUMN car_reg TEXT");
+    console.log('[Migration] Added column "car_reg" to logs table');
+  }
+  if (!logsInfo.find(c => c.name === 'user_type')) {
+    db.exec("ALTER TABLE logs ADD COLUMN user_type TEXT");
+    console.log('[Migration] Added column "user_type" to logs table');
+  }
+
   // Create default admin if not exists (admin@example.com / admin123)
   const stmt = db.prepare('SELECT * FROM admins WHERE email = ?');
   const admin = stmt.get('admin@example.com');
