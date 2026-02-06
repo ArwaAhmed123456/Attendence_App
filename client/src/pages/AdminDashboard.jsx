@@ -30,7 +30,10 @@ const AdminDashboard = () => {
         fetchPendingRequests();
 
         // Initialize Socket.io
-        const socket = io('http://localhost:5000'); // Use environmental variable in production
+        const socketHost = window.location.hostname.includes('onrender.com')
+            ? `https://${window.location.hostname}`
+            : `http://${window.location.hostname}:5000`;
+        const socket = io(socketHost);
 
         socket.on('newAttendance', (data) => {
             toast.success(
