@@ -70,7 +70,7 @@ const MobileLanding = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-cyan-600 text-white font-bold py-4 rounded-xl hover:bg-cyan-700 shadow-lg shadow-cyan-100 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 border-b-4 border-cyan-800"
+                            className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 border-b-4 border-primary/80"
                         >
                             {loading ? 'Verifying...' : 'Access Site'}
                             {!loading && <ArrowRight size={18} />}

@@ -24,6 +24,16 @@ const initDb = () => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS guards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      project_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects (id)
+    );
+
     CREATE TABLE IF NOT EXISTS logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project_id INTEGER NOT NULL,
@@ -32,7 +42,7 @@ const initDb = () => {
       car_reg TEXT,
       user_type TEXT,
       time_in TEXT NOT NULL,
-      time_out TEXT NOT NULL,
+      time_out TEXT,
       hours REAL,
       reason TEXT,
       date TEXT NOT NULL,
@@ -94,15 +104,21 @@ const initDb = () => {
   const logsInfo = db.prepare("PRAGMA table_info(logs)").all();
   if (!logsInfo.find(c => c.name === 'trade')) {
     db.exec("ALTER TABLE logs ADD COLUMN trade TEXT");
-    console.log('[Migration] Added column "trade" to logs table');
   }
   if (!logsInfo.find(c => c.name === 'car_reg')) {
     db.exec("ALTER TABLE logs ADD COLUMN car_reg TEXT");
-    console.log('[Migration] Added column "car_reg" to logs table');
   }
   if (!logsInfo.find(c => c.name === 'user_type')) {
     db.exec("ALTER TABLE logs ADD COLUMN user_type TEXT");
-    console.log('[Migration] Added column "user_type" to logs table');
+  }
+
+  // Migration for date_requests table
+  const requestsInfo = db.prepare("PRAGMA table_info(date_requests)").all();
+  if (!requestsInfo.find(c => c.name === 'status')) {
+    db.exec("ALTER TABLE date_requests ADD COLUMN status TEXT DEFAULT 'pending'");
+  }
+  if (!requestsInfo.find(c => c.name === 'created_at')) {
+    db.exec("ALTER TABLE date_requests ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP");
   }
 
   // Create default admin if not exists (admin@example.com / admin123)

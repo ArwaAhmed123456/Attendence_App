@@ -25,16 +25,17 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const login = async (email, password) => {
+    const login = async (email, password, role = 'admin') => {
         try {
-            const response = await api.post('/auth/login', { email, password });
+            const path = role === 'guard' ? '/guards/login' : '/auth/login';
+            const response = await api.post(path, { email, password });
             const { user, token } = response.data;
             await AsyncStorage.setItem('token', token);
             await AsyncStorage.setItem('user', JSON.stringify(user));
             setUser(user);
             return { success: true };
         } catch (error) {
-            return { success: false, message: error.response?.data?.message || 'Login failed' };
+            return { success: false, message: error.response?.data?.error || error.response?.data?.message || 'Login failed' };
         }
     };
 

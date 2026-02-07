@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowRight, AlertCircle, MessageSquare, X, Send } from 'lucide-react-native';
+import { ArrowRight, AlertCircle, MessageSquare, X, Send, Shield } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 import { styled } from 'nativewind';
@@ -45,7 +45,7 @@ const LandingScreen = ({ navigation }) => {
                 await AsyncStorage.removeItem('savedProjectCode');
                 await AsyncStorage.setItem('rememberMe', 'false');
 
-                const projectData = { ...res.data.project, code: code };
+                const projectData = { ...res.data.project, code: trimmedCode };
                 await AsyncStorage.setItem('currentProject', JSON.stringify(projectData));
                 navigation.navigate('MobileForm');
             } else {
@@ -149,10 +149,10 @@ const LandingScreen = ({ navigation }) => {
                         </StyledView>
                     </StyledView>
 
-                    <StyledView className="mt-12 items-center">
-                        <TouchableOpacity onPress={() => setContactModalVisible(true)} className="mb-4 flex-row items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200">
+                    <StyledView className="mt-8 items-center">
+                        <TouchableOpacity onPress={() => setContactModalVisible(true)} className="mb-4 flex-row items-center gap-2 px-4 py-2">
                             <MessageSquare size={16} color="#00afca" />
-                            <Text className="text-primary font-bold text-xs uppercase tracking-wider">Need Help? Contact Support</Text>
+                            <Text className="text-[#00afca] font-bold text-xs uppercase tracking-wider">Need Help? Contact Support</Text>
                         </TouchableOpacity>
                         <StyledText className="text-[10px] text-slate-300 font-bold uppercase">Secure Enterprise Logistics</StyledText>
                     </StyledView>

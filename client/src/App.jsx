@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProjectDetails from './pages/ProjectDetails';
 
 import AdminSignup from './pages/AdminSignup';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
@@ -21,8 +22,22 @@ const App = () => {
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/project/:id" element={<ProjectDetails />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/project/:id"
+          element={
+            <ProtectedRoute>
+              <ProjectDetails />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

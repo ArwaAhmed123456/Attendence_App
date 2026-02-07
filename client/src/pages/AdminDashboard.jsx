@@ -8,10 +8,17 @@ import toast, { Toaster } from 'react-hot-toast';
 const AdminDashboard = () => {
     const [projects, setProjects] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
+    const [guards, setGuards] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showGuardAssignModal, setShowGuardAssignModal] = useState(false);
+    const [selectedGuard, setSelectedGuard] = useState(null);
+    const [assignProjectId, setAssignProjectId] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState('');
+    const [projectToDelete, setProjectToDelete] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
     const [authPassword, setAuthPassword] = useState('');
     const [showAuthPassword, setShowAuthPassword] = useState(false);
@@ -148,21 +155,30 @@ const AdminDashboard = () => {
     };
 
     const handleDeleteProject = async (project) => {
-        console.log('Attempting to delete project:', project.id, project.name);
-        if (window.confirm(`Are you sure you want to delete "${project.name}"? This will delete all associated logs and cannot be undone!`)) {
-            try {
-                console.log('Confirmed deletion for project:', project.id);
-                const res = await api.delete(`/projects/${project.id}`);
-                console.log('Delete response:', res.data);
-                toast.success('Project deleted successfully');
-                fetchProjects();
-                localStorage.removeItem(`project_pass_${project.id}`);
-            } catch (err) {
-                console.error('Delete error:', err.response?.data || err.message);
-                toast.error('Failed to delete project: ' + (err.response?.data?.error || 'Server error'));
-            }
-        } else {
-            console.log('Deletion cancelled by user');
+        setProjectToDelete(project);
+        setDeleteConfirmation('');
+        setShowDeleteModal(true);
+    };
+
+    const confirmDeleteProject = async () => {
+        if (deleteConfirmation !== projectToDelete.name) {
+            toast.error('Project name does not match. Deletion cancelled.');
+            return;
+        }
+
+        try {
+            console.log('Confirmed deletion for project:', projectToDelete.id);
+            const res = await api.delete(`/projects/${projectToDelete.id}`);
+            console.log('Delete response:', res.data);
+            toast.success('Project deleted successfully');
+            fetchProjects();
+            localStorage.removeItem(`project_pass_${projectToDelete.id}`);
+            setShowDeleteModal(false);
+            setProjectToDelete(null);
+            setDeleteConfirmation('');
+        } catch (err) {
+            console.error('Delete error:', err.response?.data || err.message);
+            toast.error('Failed to delete project: ' + (err.response?.data?.error || 'Server error'));
         }
     };
 
@@ -260,12 +276,12 @@ const AdminDashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             <Toaster position="top-right" />
-            <nav className="bg-slate-900 shadow-xl p-4 flex justify-between items-center px-12 sticky top-0 z-50">
-                <div className="flex items-center gap-3">
+            <nav className="bg-white shadow-lg p-5 flex justify-between items-center px-12 sticky top-0 z-50 border-b-4 border-primary">
+                <div className="flex items-center gap-4">
                     <img src="/logo.png" className="w-10 h-10" alt="Logo" />
-                    <h1 className="text-xl font-bold text-white tracking-tight">Attendance Pro</h1>
+                    <h1 className="text-xl font-bold text-primary tracking-tight">Tripod Attendance Pro</h1>
                 </div>
-                <button onClick={handleLogout} className="text-slate-300 hover:text-white flex items-center gap-2 font-medium transition">
+                <button onClick={handleLogout} className="text-slate-600 hover:text-white flex items-center gap-2 font-semibold transition bg-primary/10 px-5 py-2.5 rounded-lg hover:bg-primary">
                     <LogOut size={18} /> Logout
                 </button>
             </nav>
@@ -274,7 +290,7 @@ const AdminDashboard = () => {
                 {/* Stats Section */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                        <div className="bg-cyan-50 p-4 rounded-xl text-cyan-600">
+                        <div className="bg-primary/10 p-4 rounded-xl text-primary">
                             <LayoutDashboard size={24} />
                         </div>
                         <div>
@@ -347,7 +363,7 @@ const AdminDashboard = () => {
                     <h2 className="text-2xl font-bold text-gray-800">Projects</h2>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="bg-cyan-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-cyan-700 transition"
+                        className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition"
                     >
                         <Plus size={20} /> New Project
                     </button>
@@ -364,7 +380,7 @@ const AdminDashboard = () => {
                                 className="cursor-pointer"
                             >
                                 <div className="flex items-start justify-between mb-4">
-                                    <div className="bg-cyan-50 p-3 rounded-lg text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition">
+                                    <div className="bg-primary/10 p-3 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition">
                                         <Folder size={24} />
                                     </div>
                                     <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">{p.code}</span>
@@ -405,7 +421,7 @@ const AdminDashboard = () => {
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
                     <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="bg-cyan-100 p-3 rounded-2xl text-cyan-600">
+                            <div className="bg-primary/20 p-3 rounded-2xl text-primary">
                                 <Plus size={24} />
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900">New Project</h3>
@@ -479,7 +495,7 @@ const AdminDashboard = () => {
                             {formError && <p className="text-red-500 text-sm">{formError}</p>}
                             <div className="flex gap-4 mt-6">
                                 <button type="button" onClick={() => { setShowModal(false); setFormError(''); }} className="flex-1 py-2 text-gray-600">Cancel</button>
-                                <button type="submit" className="flex-1 bg-cyan-600 text-white py-2 rounded-lg font-bold">Create Project</button>
+                                <button type="submit" className="flex-1 bg-primary text-white py-2 rounded-lg font-bold">Create Project</button>
                             </div>
                         </form>
                     </div>
@@ -491,7 +507,7 @@ const AdminDashboard = () => {
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
                     <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl border border-slate-100">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="bg-cyan-100 p-3 rounded-2xl text-cyan-600">
+                            <div className="bg-primary/20 p-3 rounded-2xl text-primary">
                                 <Lock size={24} />
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900">Project Access</h3>
@@ -527,7 +543,7 @@ const AdminDashboard = () => {
                                     id="rememberPassword"
                                     checked={rememberPassword}
                                     onChange={(e) => setRememberPassword(e.target.checked)}
-                                    className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-cyan-500"
                                 />
                                 <label htmlFor="rememberPassword" className="text-sm text-slate-600 cursor-pointer">
                                     Remember password for this project
@@ -539,7 +555,7 @@ const AdminDashboard = () => {
                             <button
                                 type="button"
                                 onClick={openResetModal}
-                                className="text-cyan-600 hover:text-cyan-700 text-sm font-medium underline"
+                                className="text-primary hover:text-cyan-700 text-sm font-medium underline"
                             >
                                 Forgot Password?
                             </button>
@@ -559,7 +575,7 @@ const AdminDashboard = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-cyan-600 text-white py-3 rounded-lg font-bold hover:bg-cyan-700 transition shadow-lg"
+                                    className="flex-1 bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition shadow-lg"
                                 >
                                     Access Project
                                 </button>
@@ -769,6 +785,63 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Project Confirmation Modal */}
+            {showDeleteModal && projectToDelete && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+                    <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl border border-slate-100">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="bg-red-100 p-3 rounded-2xl text-red-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-900">Delete Project</h3>
+                        </div>
+
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
+                            <p className="text-red-800 font-semibold mb-2">⚠️ Warning: This action cannot be undone!</p>
+                            <p className="text-red-700 text-sm">
+                                Deleting this project will permanently remove all associated attendance logs and data.
+                            </p>
+                        </div>
+
+                        <div className="mb-6">
+                            <p className="text-slate-700 mb-4">
+                                To confirm deletion, please type the project name: <span className="font-bold text-slate-900">"{projectToDelete.name}"</span>
+                            </p>
+                            <input
+                                type="text"
+                                value={deleteConfirmation}
+                                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                                placeholder="Type project name here"
+                                className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setProjectToDelete(null);
+                                    setDeleteConfirmation('');
+                                }}
+                                className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-lg font-bold hover:bg-slate-200 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDeleteProject}
+                                disabled={deleteConfirmation !== projectToDelete.name}
+                                className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Delete Project
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -35,12 +35,14 @@ const projectRoutes = require('./routes/projects');
 const logRoutes = require('./routes/logs');
 const requestsRouter = require('./routes/requests');
 const contactRoutes = require('./routes/contact');
+const guardRoutes = require('./routes/guards');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/requests', requestsRouter);
 app.use('/api/contact', contactRoutes);
+app.use('/api/guards', guardRoutes);
 
 // Catch-all handler for React SPA (must be last)
 app.use((req, res) => {

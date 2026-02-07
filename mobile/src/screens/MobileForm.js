@@ -85,21 +85,10 @@ const MobileForm = ({ navigation }) => {
     const validate = () => {
         const errors = {};
         if (!formData.name.trim()) errors.name = "Full Name is required";
-        if (!formData.trade.trim()) errors.trade = "Trade / Company is required";
+        if (!formData.trade.trim()) errors.trade = "Company is required";
         if (!formData.car_reg.trim()) errors.car_reg = "Car Registration is required";
         if (!formData.date) errors.date = "Date is required";
         if (!formData.time_in) errors.time_in = "Time In is required";
-        if (!formData.time_out) errors.time_out = "Time Out is required";
-
-        if (formData.time_in && formData.time_out && formData.date) {
-            const startStr = formData.date + 'T' + formData.time_in;
-            const endStr = formData.date + 'T' + formData.time_out;
-            const start = new Date(startStr);
-            const end = new Date(endStr);
-            if (end <= start) {
-                errors.time_out = "Time Out must be after Time In";
-            }
-        }
 
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
@@ -265,17 +254,6 @@ const MobileForm = ({ navigation }) => {
                 <StyledView className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-6 font-Inter">
                     <StyledText className="text-xs font-bold text-slate-400 uppercase mb-4 font-Inter_Bold">Worker Details</StyledText>
 
-                    <StyledView className="flex-row bg-slate-100 p-1 rounded-xl mb-6">
-                        {['Employee', 'Visitor'].map(type => (
-                            <StyledTouchableOpacity
-                                key={type}
-                                onPress={() => setFormData({ ...formData, user_type: type })}
-                                className={`flex-1 py-2 rounded-lg ${formData.user_type === type ? 'bg-white shadow-sm' : ''}`}
-                            >
-                                <StyledText className={`text-center font-bold ${formData.user_type === type ? 'text-slate-900' : 'text-slate-400'}`}>{type}</StyledText>
-                            </StyledTouchableOpacity>
-                        ))}
-                    </StyledView>
 
                     <StyledView className="mb-4">
                         <StyledText className="text-sm font-medium text-slate-700 mb-2">Full Name *</StyledText>
@@ -292,12 +270,12 @@ const MobileForm = ({ navigation }) => {
                     </StyledView>
 
                     <StyledView className="mb-4">
-                        <StyledText className="text-sm font-medium text-slate-700 mb-2">Trade / Company *</StyledText>
+                        <StyledText className="text-sm font-medium text-slate-700 mb-2">Company *</StyledText>
                         <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:border-primary">
                             <Briefcase size={18} color="#94a3b8" />
                             <StyledTextInput
                                 className="flex-1 ml-3 text-slate-900"
-                                placeholder="Electrician / Acme Corp"
+                                placeholder="Acme Corp"
                                 value={formData.trade}
                                 onChangeText={(text) => setFormData({ ...formData, trade: text })}
                             />
@@ -350,42 +328,6 @@ const MobileForm = ({ navigation }) => {
                                 <Lock size={16} color="#94a3b8" />
                             </StyledView>
                         </StyledView>
-
-                        <StyledView className="flex-1">
-                            <StyledText className="text-sm font-medium text-slate-700 mb-2">Time Out *</StyledText>
-                            <StyledTouchableOpacity onPress={() => setShowTimeOutPicker(true)}>
-                                <StyledView className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                                    <Clock size={16} color="#94a3b8" />
-                                    <StyledText className="flex-1 ml-2 text-slate-900">{formData.time_out || 'Select'}</StyledText>
-                                </StyledView>
-                            </StyledTouchableOpacity>
-                            {fieldErrors.time_out && <StyledText className="text-red-500 text-xs mt-1 ml-1">{fieldErrors.time_out}</StyledText>}
-                        </StyledView>
-                    </StyledView>
-
-                    {showTimeInPicker && (
-                        <DateTimePicker
-                            value={new Date()}
-                            mode="time"
-                            is24Hour={true}
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                            onChange={handleTimeInChange}
-                        />
-                    )}
-
-                    {showTimeOutPicker && (
-                        <DateTimePicker
-                            value={new Date()}
-                            mode="time"
-                            is24Hour={true}
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                            onChange={handleTimeOutChange}
-                        />
-                    )}
-
-                    <StyledView className="bg-cyan-50 flex-row justify-between items-center p-4 rounded-xl border border-cyan-100 mb-4">
-                        <StyledText className="text-secondary font-bold">Total Duration</StyledText>
-                        <StyledText className="text-xl font-bold text-secondary">{calculatedHours} hrs</StyledText>
                     </StyledView>
 
                     <StyledView>

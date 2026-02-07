@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { Lock, Eye, EyeOff } from 'lucide-react';
@@ -11,9 +11,22 @@ const AdminLogin = () => {
     const [view, setView] = useState('login'); // login, forgot, reset
     const [showPassword, setShowPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
+
+    useEffect(() => {
+        loadSavedCredentials();
+    }, []);
+
+    const loadSavedCredentials = () => {
+        const savedEmail = localStorage.getItem('admin_remember_email');
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true);
+        }
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -21,6 +34,14 @@ const AdminLogin = () => {
         try {
             const res = await api.post('/auth/login', { email, password });
             localStorage.setItem('adminToken', res.data.token);
+
+            // Save or clear credentials based on Remember Me
+            if (rememberMe) {
+                localStorage.setItem('admin_remember_email', email);
+            } else {
+                localStorage.removeItem('admin_remember_email');
+            }
+
             navigate('/admin');
         } catch (err) {
             setError('Invalid credentials');
@@ -97,7 +118,19 @@ const AdminLogin = () => {
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
                         </div>
-                        <div className="text-right">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="rememberMe"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
+                                />
+                                <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600 cursor-pointer">
+                                    Remember me
+                                </label>
+                            </div>
                             <button type="button" onClick={() => setView('forgot')} className="text-sm text-secondary hover:text-primary font-bold">Forgot Password?</button>
                         </div>
                         {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}

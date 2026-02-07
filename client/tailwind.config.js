@@ -7,9 +7,9 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: '#2b4594', // Corporate Blue
+                primary: '#3d5a99', // Tripod Navy Blue (from logo)
                 secondary: '#1e293b', // Dark Navy
-                accent: '#60a5fa', // Soft Blue
+                accent: '#5a7bc4', // Lighter Blue accent
             }
         },
     },

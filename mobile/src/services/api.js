@@ -1,14 +1,15 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Production API URL
-// const API_BASE_URL = 'https://attendence-app-uzvt.onrender.com/api';
+// 1. Production API URL (Main Deployment)
+const PROD_URL = 'https://attendence-app-uzvt.onrender.com/api';
 
-// Local Development URL (Your PC's IP)
-// Local Development URL (Your PC's IP)
-// Updated for Physical Device testing (Expo on Phone)
-// Updated for Production worker distribution
-const API_BASE_URL = 'https://attendence-app-uzvt.onrender.com/api';
+// 2. Local Development URL (Your PC's IP or Tunnel)
+// Use your machine's IP (e.g., 192.168.100.XXX) or a tunnel URL (like ngrok)
+// IMPORTANT: If testing on a physical phone, you MUST use your local IP, not localhost.
+const DEV_URL = 'http://192.168.100.173:5000/api';
+
+const API_BASE_URL = DEV_URL; // Toggle to PROD_URL for live app
 
 const api = axios.create({
     baseURL: API_BASE_URL,

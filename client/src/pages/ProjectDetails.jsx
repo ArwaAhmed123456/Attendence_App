@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, Search, Download, Users, Calendar, Settings, Lock, Eye, EyeOff, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Search, Download, Users, Calendar, Settings, Lock, Eye, EyeOff, Edit2, Trash2, X, Save, AlertTriangle, LogOut, Plus } from 'lucide-react';
 import jsPDF from 'jspdf';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -20,6 +20,18 @@ const ProjectDetails = () => {
     const [editingLog, setEditingLog] = useState(null);
     const [deletingLog, setDeletingLog] = useState(null);
     const [confirmName, setConfirmName] = useState('');
+
+    // Add Manual Log State
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newLog, setNewLog] = useState({
+        name: '',
+        trade: '',
+        car_reg: '',
+        user_type: 'Employee',
+        time_in: '',
+        time_out: '',
+        date: new Date().toISOString().split('T')[0]
+    });
 
     useEffect(() => {
         fetchData();
@@ -98,6 +110,54 @@ const ProjectDetails = () => {
         }
     };
 
+    const handleCheckout = async (logId) => {
+        try {
+            await api.post(`/logs/${logId}/checkout`);
+            toast.success("Worker checked out successfully");
+            fetchData();
+        } catch (err) {
+            toast.error("Checkout failed");
+        }
+    };
+
+    const handleAddClick = () => {
+        setNewLog({
+            name: '',
+            trade: '',
+            car_reg: '',
+            user_type: 'Employee',
+            time_in: '',
+            time_out: '',
+            date: new Date().toISOString().split('T')[0]
+        });
+        setShowAddModal(true);
+    };
+
+    const handleAddChange = (e) => {
+        const { name, value } = e.target;
+        setNewLog(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAddSave = async (e) => {
+        e.preventDefault();
+        if (!newLog.name || !newLog.time_in || !newLog.date) {
+            toast.error("Please fill in required fields (Name, Time In, Date)");
+            return;
+        }
+
+        try {
+            await api.post('/logs/manual', {
+                ...newLog,
+                project_id: id
+            });
+            toast.success("Log added manually");
+            setShowAddModal(false);
+            fetchData();
+        } catch (err) {
+            toast.error("Failed to add log");
+        }
+    };
+
     const filteredLogs = logs.filter(log =>
         log.name.toLowerCase().includes(search.toLowerCase()) ||
         log.date.includes(search) ||
@@ -156,6 +216,66 @@ const ProjectDetails = () => {
         <div className="min-h-screen bg-slate-50">
             <Toaster position="top-right" />
 
+            {/* Add Manual Log Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-slate-800">Add Manual Log</h3>
+                            <button onClick={() => setShowAddModal(false)}><X className="text-slate-400 hover:text-red-500" /></button>
+                        </div>
+                        <form onSubmit={handleAddSave} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Name <span className="text-red-500">*</span></label>
+                                <input name="name" value={newLog.name} onChange={handleAddChange} className="w-full p-3 border rounded-lg bg-slate-50" placeholder="Full Name" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Trade</label>
+                                    <input name="trade" value={newLog.trade} onChange={handleAddChange} className="w-full p-3 border rounded-lg bg-slate-50" placeholder="e.g. Electrician" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Car Reg</label>
+                                    <input name="car_reg" value={newLog.car_reg} onChange={handleAddChange} className="w-full p-3 border rounded-lg bg-slate-50" placeholder="ABC-123" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-2">User Type</label>
+                                <div className="flex bg-slate-50 p-1 rounded-lg border">
+                                    {['Employee', 'Visitor'].map(type => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setNewLog({ ...newLog, user_type: type })}
+                                            className={`flex-1 py-1.5 rounded-md text-sm font-medium transition ${newLog.user_type === type ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+                                        >
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Time In <span className="text-red-500">*</span></label>
+                                    <input type="time" name="time_in" value={newLog.time_in} onChange={handleAddChange} className="w-full p-3 border rounded-lg bg-slate-50" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Time Out</label>
+                                    <input type="time" name="time_out" value={newLog.time_out} onChange={handleAddChange} className="w-full p-3 border rounded-lg bg-slate-50" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Date <span className="text-red-500">*</span></label>
+                                <input type="date" name="date" value={newLog.date} onChange={handleAddChange} className="w-full p-3 border rounded-lg bg-slate-50" required />
+                            </div>
+                            <button type="submit" className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition flex items-center justify-center gap-2 mt-4">
+                                <Plus size={18} /> Add Log Entry
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Edit Modal */}
             {editingLog && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -193,7 +313,7 @@ const ProjectDetails = () => {
                                 <label className="block text-sm font-medium text-slate-600 mb-1">Date</label>
                                 <input type="date" name="date" value={editingLog.date} onChange={handleEditChange} className="w-full p-3 border rounded-lg bg-slate-50" />
                             </div>
-                            <button onClick={handleEditSave} className="w-full bg-cyan-600 text-white py-3 rounded-lg font-bold hover:bg-cyan-700 transition flex items-center justify-center gap-2 mt-4">
+                            <button onClick={handleEditSave} className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition flex items-center justify-center gap-2 mt-4">
                                 <Save size={18} /> Save Changes
                             </button>
                         </div>
@@ -244,11 +364,11 @@ const ProjectDetails = () => {
                 </div>
             )}
 
-            <nav className="bg-white shadow-sm p-4 px-12 border-b border-slate-100 sticky top-0 z-50 flex justify-between items-center">
-                <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-500 hover:text-cyan-600 font-bold transition">
+            <nav className="bg-white shadow-lg p-5 px-12 sticky top-0 z-50 flex justify-between items-center border-b-4 border-primary">
+                <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-600 hover:text-white font-semibold transition bg-primary/10 px-5 py-2.5 rounded-lg hover:bg-primary">
                     <ArrowLeft size={20} /> Back to Dashboard
                 </button>
-                <img src="/logo.png" className="w-8 h-8" alt="Logo" />
+                <img src="/logo.png" className="w-9 h-9" alt="Logo" />
             </nav>
 
             <div className="max-w-7xl mx-auto p-8 lg:p-12">
@@ -256,16 +376,21 @@ const ProjectDetails = () => {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <h1 className="text-4xl font-bold text-slate-900 tracking-tight">{project.name}</h1>
-                            <span className="bg-cyan-100 text-cyan-700 text-xs font-mono font-bold px-3 py-1 rounded-full uppercase">{project.code}</span>
+                            <span className="bg-primary/20 text-primary text-xs font-mono font-bold px-3 py-1 rounded-full uppercase">{project.code}</span>
                         </div>
                         <p className="text-slate-500">Project Oversight & Attendance Logs</p>
                     </div>
 
                     <div className="flex gap-4">
-
+                        <button
+                            onClick={handleAddClick}
+                            className="bg-white text-primary border-2 border-primary px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-primary/5 transition font-bold"
+                        >
+                            <Plus size={20} /> Add Manual Log
+                        </button>
                         <button
                             onClick={downloadPDF}
-                            className="bg-cyan-600 text-white px-8 py-3 rounded-2xl flex items-center gap-2 hover:bg-cyan-700 transition shadow-lg shadow-cyan-200 font-bold"
+                            className="bg-primary text-white px-8 py-3 rounded-2xl flex items-center gap-2 hover:bg-primary/90 transition shadow-lg shadow-primary/20 font-bold"
                         >
                             <Download size={20} /> Export Report
                         </button>
@@ -275,7 +400,7 @@ const ProjectDetails = () => {
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div className="bg-cyan-100 p-3 rounded-full text-cyan-600">
+                        <div className="bg-primary/20 p-3 rounded-full text-primary">
                             <Users size={24} />
                         </div>
                         <div>
@@ -284,7 +409,7 @@ const ProjectDetails = () => {
                         </div>
                     </div>
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div className="bg-cyan-100 p-3 rounded-full text-cyan-600">
+                        <div className="bg-primary/20 p-3 rounded-full text-primary">
                             <Users size={24} />
                         </div>
                         <div>
@@ -339,25 +464,34 @@ const ProjectDetails = () => {
                                     <td className="p-4 text-gray-600">{log.trade}</td>
                                     <td className="p-4 text-gray-600 font-mono text-sm">{log.car_reg || '-'}</td>
                                     <td className="p-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${log.user_type === 'Visitor' ? 'bg-orange-100 text-orange-700' : 'bg-cyan-100 text-cyan-700'}`}>
+                                        <span className={`px-2 py-1 rounded-full text-xs ${log.user_type === 'Visitor' ? 'bg-orange-100 text-orange-700' : 'bg-primary/20 text-primary'}`}>
                                             {log.user_type}
                                         </span>
                                     </td>
                                     <td className="p-4 text-gray-600">{log.time_in}</td>
-                                    <td className="p-4 text-gray-600">{log.time_out}</td>
-                                    <td className="p-4 font-bold text-gray-800">{log.hours}</td>
+                                    <td className="p-4 text-gray-600">{log.time_out || <span className="text-orange-500 font-bold italic">Active</span>}</td>
+                                    <td className="p-4 font-bold text-gray-800">{log.hours || '-'}</td>
                                     <td className="p-4 text-right">
-                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex justify-end gap-2 group-hover:opacity-100 transition-opacity">
+                                            {!log.time_out && (
+                                                <button
+                                                    onClick={() => handleCheckout(log.id)}
+                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                                                    title="Force Checkout"
+                                                >
+                                                    <LogOut size={18} />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleEditClick(log)}
-                                                className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition"
+                                                className="p-2 text-primary hover:bg-primary/10 rounded-lg transition opacity-0 group-hover:opacity-100"
                                                 title="Edit Log"
                                             >
                                                 <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteClick(log)}
-                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
                                                 title="Delete Log"
                                             >
                                                 <Trash2 size={18} />
