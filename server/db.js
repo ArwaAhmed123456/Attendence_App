@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 
 const dbPath = path.resolve(__dirname, 'attendance.db');
 const db = new Database(dbPath);
@@ -131,6 +132,66 @@ const initDb = () => {
     insert.run('admin@example.com', hash);
     console.log('Default admin created: admin@example.com / admin123');
   }
+
+  // Data Seeding for Render (Persistence)
+  const seedProjects = () => {
+    try {
+      const seedPath = path.resolve(__dirname, 'seed_data.json');
+      if (fs.existsSync(seedPath)) {
+        const seedData = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+
+        // 1. Seed Project
+        const checkProj = db.prepare('SELECT id FROM projects WHERE code = ?');
+        let project = checkProj.get(seedData.project.code);
+
+        if (!project) {
+          console.log('Seeding project:', seedData.project.name);
+          const insertProj = db.prepare(`
+            INSERT INTO projects (name, code, password, admin_email)
+            VALUES (?, ?, ?, ?)
+          `);
+          const info = insertProj.run(
+            seedData.project.name,
+            seedData.project.code,
+            seedData.project.password,
+            seedData.project.admin_email
+          );
+          project = { id: info.lastInsertRowid };
+        }
+
+        // 2. Seed Logs
+        const checkLog = db.prepare('SELECT id FROM logs WHERE project_id = ? AND name = ? AND date = ? AND time_in = ?');
+        const insertLog = db.prepare(`
+          INSERT INTO logs (project_id, name, trade, car_reg, user_type, time_in, time_out, hours, date)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        let logCount = 0;
+        seedData.logs.forEach(log => {
+          const exists = checkLog.get(project.id, log.name, log.date, log.time_in);
+          if (!exists) {
+            insertLog.run(
+              project.id,
+              log.name,
+              log.trade,
+              log.car_reg,
+              log.user_type,
+              log.time_in,
+              log.time_out,
+              log.hours,
+              log.date
+            );
+            logCount++;
+          }
+        });
+        if (logCount > 0) console.log(`Seeded ${logCount} historical logs for ${seedData.project.name}.`);
+      }
+    } catch (err) {
+      console.error('Seeding error:', err);
+    }
+  };
+
+  seedProjects();
 };
 
 initDb();
