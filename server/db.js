@@ -140,51 +140,59 @@ const initDb = () => {
       if (fs.existsSync(seedPath)) {
         const seedData = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
 
-        // 1. Seed Project
+        // 1. Seed Projects
         const checkProj = db.prepare('SELECT id FROM projects WHERE code = ?');
-        let project = checkProj.get(seedData.project.code);
+        const insertProj = db.prepare(`
+          INSERT INTO projects (name, code, password, admin_email)
+          VALUES (?, ?, ?, ?)
+        `);
 
-        if (!project) {
-          console.log('Seeding project:', seedData.project.name);
-          const insertProj = db.prepare(`
-            INSERT INTO projects (name, code, password, admin_email)
-            VALUES (?, ?, ?, ?)
-          `);
-          const info = insertProj.run(
-            seedData.project.name,
-            seedData.project.code,
-            seedData.project.password,
-            seedData.project.admin_email
-          );
-          project = { id: info.lastInsertRowid };
+        const projectIdMap = {}; // old_id -> new_id
+
+        if (seedData.projects) {
+          seedData.projects.forEach(p => {
+            let existing = checkProj.get(p.code);
+            if (!existing) {
+              console.log('Seeding project:', p.name);
+              const info = insertProj.run(p.name, p.code, p.password, p.admin_email);
+              projectIdMap[p.id] = info.lastInsertRowid;
+            } else {
+              projectIdMap[p.id] = existing.id;
+            }
+          });
         }
 
         // 2. Seed Logs
-        const checkLog = db.prepare('SELECT id FROM logs WHERE project_id = ? AND name = ? AND date = ? AND time_in = ?');
-        const insertLog = db.prepare(`
-          INSERT INTO logs (project_id, name, trade, car_reg, user_type, time_in, time_out, hours, date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+        if (seedData.logs) {
+          const checkLog = db.prepare('SELECT id FROM logs WHERE project_id = ? AND name = ? AND date = ? AND time_in = ?');
+          const insertLog = db.prepare(`
+            INSERT INTO logs (project_id, name, trade, car_reg, user_type, time_in, time_out, hours, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `);
 
-        let logCount = 0;
-        seedData.logs.forEach(log => {
-          const exists = checkLog.get(project.id, log.name, log.date, log.time_in);
-          if (!exists) {
-            insertLog.run(
-              project.id,
-              log.name,
-              log.trade,
-              log.car_reg,
-              log.user_type,
-              log.time_in,
-              log.time_out,
-              log.hours,
-              log.date
-            );
-            logCount++;
-          }
-        });
-        if (logCount > 0) console.log(`Seeded ${logCount} historical logs for ${seedData.project.name}.`);
+          let logCount = 0;
+          seedData.logs.forEach(log => {
+            const newProjectId = projectIdMap[log.project_id];
+            if (newProjectId) {
+              const exists = checkLog.get(newProjectId, log.name, log.date, log.time_in);
+              if (!exists) {
+                insertLog.run(
+                  newProjectId,
+                  log.name,
+                  log.trade,
+                  log.car_reg,
+                  log.user_type,
+                  log.time_in,
+                  log.time_out,
+                  log.hours,
+                  log.date
+                );
+                logCount++;
+              }
+            }
+          });
+          if (logCount > 0) console.log(`Seeded ${logCount} logs across all projects.`);
+        }
       }
     } catch (err) {
       console.error('Seeding error:', err);

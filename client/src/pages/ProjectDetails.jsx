@@ -170,43 +170,49 @@ const ProjectDetails = () => {
     const presentToday = filteredLogs.filter(l => l.date === today).length;
 
     const downloadPDF = () => {
-        const doc = new jsPDF();
+        try {
+            const doc = new jsPDF();
 
-        doc.setFontSize(18);
-        doc.text(project.name, 14, 22);
-        doc.setFontSize(11);
-        doc.text(`Project Code: ${project.code}`, 14, 30);
-        doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 36);
+            doc.setFontSize(18);
+            doc.text(project.name, 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Project Code: ${project.code}`, 14, 30);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 36);
 
-        let y = 45;
+            let y = 45;
 
-        // Simple table header manually
-        const headers = ["Date", "Name", "Trade", "Car", "In", "Out", "Hrs"];
-        const xPos = [14, 40, 75, 110, 135, 150, 170];
+            // Simple table header manually
+            const headers = ["Date", "Name", "Trade", "Car", "In", "Out", "Hrs"];
+            const xPos = [14, 40, 75, 110, 135, 150, 170];
 
-        doc.setFont(undefined, 'bold');
-        headers.forEach((h, i) => doc.text(h, xPos[i], y));
-        doc.line(14, y + 2, 195, y + 2);
-        y += 10;
+            doc.setFont(undefined, 'bold');
+            headers.forEach((h, i) => doc.text(h, xPos[i], y));
+            doc.line(14, y + 2, 195, y + 2);
+            y += 10;
 
-        doc.setFont(undefined, 'normal');
+            doc.setFont(undefined, 'normal');
 
-        filteredLogs.forEach((log) => {
-            if (y > 280) {
-                doc.addPage();
-                y = 20;
-            }
-            doc.text(log.date, xPos[0], y);
-            doc.text(log.name.substring(0, 15), xPos[1], y);
-            doc.text((log.trade || '-').substring(0, 12), xPos[2], y);
-            doc.text((log.car_reg || '-').substring(0, 10), xPos[3], y);
-            doc.text(log.time_in, xPos[4], y);
-            doc.text(log.time_out, xPos[5], y);
-            doc.text(String(log.hours || 0), xPos[6], y);
-            y += 8;
-        });
+            filteredLogs.forEach((log) => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(String(log.date), xPos[0], y);
+                doc.text(String(log.name).substring(0, 15), xPos[1], y);
+                doc.text(String(log.trade || '-').substring(0, 12), xPos[2], y);
+                doc.text(String(log.car_reg || '-').substring(0, 10), xPos[3], y);
+                doc.text(String(log.time_in), xPos[4], y);
+                doc.text(String(log.time_out || '-'), xPos[5], y);
+                doc.text(String(log.hours || 0), xPos[6], y);
+                y += 8;
+            });
 
-        doc.save(`${project.name}_Report.pdf`);
+            doc.save(`${project.name}_Report.pdf`);
+            toast.success("PDF report downloaded successfully!");
+        } catch (err) {
+            console.error("PDF Export error:", err);
+            toast.error("Failed to generate PDF. Check console for details.");
+        }
     };
 
     if (loading) return <div className="p-8">Loading...</div>;
