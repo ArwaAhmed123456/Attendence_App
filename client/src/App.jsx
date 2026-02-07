@@ -1,3 +1,4 @@
+// Final deployment version - manual logs, security, and Totmonslow data included
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MobileLanding from './pages/MobileLanding';
