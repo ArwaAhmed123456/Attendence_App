@@ -39,13 +39,13 @@ router.post('/', (req, res) => {
     }
 });
 
-// GET /api/requests/pending - Get all pending requests (Admin only)
 router.get('/pending', verifyToken, (req, res) => {
     try {
-        const stmt = db.prepare('SELECT * FROM date_requests WHERE status = "pending" ORDER BY created_at DESC');
+        const stmt = db.prepare("SELECT * FROM date_requests WHERE status = 'pending' ORDER BY created_at DESC");
         const requests = stmt.all();
         res.json(requests);
     } catch (err) {
+        console.error('[Requests Pending Error]', err);
         res.status(500).json({ error: 'Database error' });
     }
 });
