@@ -144,7 +144,7 @@ const LandingScreen = ({ navigation }) => {
                             <StyledTouchableOpacity
                                 onPress={handleSubmit}
                                 disabled={loading}
-                                className={`w-full bg-primary py-5 rounded-2xl flex-row items-center justify-center gap-3 shadow-lg shadow-cyan-200 border-b-4 border-secondary ${loading ? 'opacity-70' : ''}`}
+                                className={`w-full bg-primary py-5 rounded-2xl flex-row items-center justify-center gap-3 shadow-lg shadow-blue-200 border-b-4 border-secondary ${loading ? 'opacity-70' : ''}`}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="white" />

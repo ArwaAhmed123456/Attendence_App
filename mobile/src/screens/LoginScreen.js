@@ -41,8 +41,8 @@ const LoginScreen = ({ navigation }) => {
 
                 <StyledView className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100">
                     <StyledView className="items-center mb-8">
-                        <StyledView className="bg-cyan-100 p-4 rounded-full">
-                            <Lock size={40} color="#0891b2" />
+                        <StyledView className="bg-blue-100 p-4 rounded-full">
+                            <Lock size={40} color="#2b4594" />
                         </StyledView>
                     </StyledView>
 
@@ -52,7 +52,7 @@ const LoginScreen = ({ navigation }) => {
                         <StyledView className="mb-4">
                             <StyledText className="text-sm font-medium text-slate-700 mb-2 ml-1">Email Address</StyledText>
                             <StyledTextInput
-                                className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 focus:border-cyan-500"
+                                className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 focus:border-primary"
                                 placeholder="admin@example.com"
                                 value={email}
                                 onChangeText={setEmail}
@@ -64,7 +64,7 @@ const LoginScreen = ({ navigation }) => {
                         <StyledView className="mt-4">
                             <StyledText className="text-sm font-medium text-slate-700 mb-2 ml-1">Password</StyledText>
                             <StyledTextInput
-                                className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 focus:border-cyan-500"
+                                className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 focus:border-primary"
                                 placeholder="********"
                                 value={password}
                                 onChangeText={setPassword}
@@ -75,7 +75,7 @@ const LoginScreen = ({ navigation }) => {
                         {error ? <StyledText className="text-red-500 text-sm text-center mt-2">{error}</StyledText> : null}
 
                         <StyledTouchableOpacity
-                            className={`bg-cyan-600 py-4 rounded-2xl mt-6 shadow-lg shadow-cyan-100 border-b-4 border-cyan-800 ${loading ? 'opacity-70' : ''}`}
+                            className={`bg-primary py-4 rounded-2xl mt-6 shadow-lg shadow-blue-100 border-b-4 border-secondary ${loading ? 'opacity-70' : ''}`}
                             onPress={handleLogin}
                             disabled={loading}
                         >
