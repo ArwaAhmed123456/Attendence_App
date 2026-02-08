@@ -47,7 +47,16 @@ const LandingScreen = ({ navigation }) => {
 
                 const projectData = { ...res.data.project, code: trimmedCode };
                 await AsyncStorage.setItem('currentProject', JSON.stringify(projectData));
-                navigation.navigate('MobileForm');
+
+                // Check if already checked in today
+                const lastCheckIn = await AsyncStorage.getItem('lastCheckInDate');
+                const today = new Date().toISOString().split('T')[0];
+
+                if (lastCheckIn === today) {
+                    navigation.navigate('WorkerListScreen');
+                } else {
+                    navigation.navigate('MobileForm');
+                }
             } else {
                 setError(res.data.error || 'Invalid Project Code');
             }
@@ -151,8 +160,8 @@ const LandingScreen = ({ navigation }) => {
 
                     <StyledView className="mt-8 items-center">
                         <TouchableOpacity onPress={() => setContactModalVisible(true)} className="mb-4 flex-row items-center gap-2 px-4 py-2">
-                            <MessageSquare size={16} color="#00afca" />
-                            <Text className="text-[#00afca] font-bold text-xs uppercase tracking-wider">Need Help? Contact Support</Text>
+                            <MessageSquare size={16} color="#2b4594" />
+                            <StyledText className="text-primary font-bold text-xs uppercase tracking-wider">Need Help? Contact Support</StyledText>
                         </TouchableOpacity>
                         <StyledText className="text-[10px] text-slate-300 font-bold uppercase">Secure Enterprise Logistics</StyledText>
                     </StyledView>
@@ -222,7 +231,7 @@ const LandingScreen = ({ navigation }) => {
                                     <TouchableOpacity
                                         onPress={handleContactSubmit}
                                         disabled={contactLoading}
-                                        style={{ backgroundColor: '#00afca', padding: 18, borderRadius: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, shadowColor: '#00afca', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 }}
+                                        style={{ backgroundColor: '#2b4594', padding: 18, borderRadius: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, shadowColor: '#2b4594', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 }}
                                     >
                                         {contactLoading ? (
                                             <ActivityIndicator color="#fff" />

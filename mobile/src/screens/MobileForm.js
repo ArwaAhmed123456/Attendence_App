@@ -43,12 +43,12 @@ const MobileForm = ({ navigation }) => {
         reason: ''
     });
 
-    const [calculatedHours, setCalculatedHours] = useState(0);
+
 
     useEffect(() => {
         loadProject();
 
-        // Auto-fill Time In with current time on mount
+        // Auto-fill Time In with current time on mount (Time In Only)
         const now = new Date();
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
@@ -65,22 +65,71 @@ const MobileForm = ({ navigation }) => {
             return;
         }
         const parsed = JSON.parse(p);
+        if (!parsed || !parsed.code) {
+            await AsyncStorage.removeItem('currentProject');
+            navigation.navigate('Landing');
+            return;
+        }
         setProject(parsed);
     };
 
-    useEffect(() => {
-        if (formData.time_in && formData.time_out && formData.date) {
-            const startStr = formData.date + 'T' + formData.time_in;
-            const endStr = formData.date + 'T' + formData.time_out;
-            const start = new Date(startStr);
-            const end = new Date(endStr);
-            let diff = (end - start) / (1000 * 60 * 60);
-            if (diff < 0) diff = 0;
-            setCalculatedHours(diff.toFixed(2));
-        } else {
-            setCalculatedHours(0);
+
+
+    const startPolling = (id) => {
+        if (checkInterval) clearInterval(checkInterval);
+
+        const interval = setInterval(async () => {
+            try {
+                const res = await api.get(`/requests/${id}`);
+                const status = res.data?.status;
+
+                if (status === 'approved') {
+                    clearInterval(interval);
+                    setPermissionStatus('approved');
+                    setShowPermissionModal(false);
+                    Alert.alert("Success", "Permission granted! You can now submit data for this date.");
+                } else if (status === 'rejected') {
+                    clearInterval(interval);
+                    setPermissionStatus('rejected');
+                }
+            } catch (error) {
+                console.log("Polling error:", error);
+            }
+        }, 3000); // Poll every 3 seconds
+        setCheckInterval(interval);
+    };
+
+    const submitPermissionRequest = async () => {
+        if (!project?.code || !formData.name || !restrictedDate) {
+            Alert.alert("Missing Info", "Please ensure your name is entered before requesting permission.");
+            return;
         }
-    }, [formData.time_in, formData.time_out, formData.date]);
+
+        try {
+            const res = await api.post('/requests', {
+                project_code: project.code,
+                user_name: formData.name,
+                requested_date: restrictedDate,
+                reason: formData.reason || 'Restricted date entry'
+            });
+
+            if (res.data.success) {
+                setPermissionRequestId(res.data.id);
+                setPermissionStatus('pending');
+                startPolling(res.data.id);
+            }
+        } catch (error) {
+            console.error("Permission Request Error:", error);
+            Alert.alert("Error", "Failed to send permission request. Please try again.");
+        }
+    };
+
+    // Cleanup polling on unmount
+    useEffect(() => {
+        return () => {
+            if (checkInterval) clearInterval(checkInterval);
+        };
+    }, []);
 
     const validate = () => {
         const errors = {};
@@ -95,7 +144,11 @@ const MobileForm = ({ navigation }) => {
     };
 
     const handleSubmit = async () => {
-        if (!project) return;
+        if (!project?.code) {
+            Alert.alert('Error', 'Project data missing. Reloading...');
+            loadProject();
+            return;
+        }
 
         if (!validate()) {
             setError('Please fill in all required fields correctly.');
@@ -106,10 +159,18 @@ const MobileForm = ({ navigation }) => {
         setError('');
 
         try {
-            await api.post('/logs', {
+            const res = await api.post('/logs', {
                 ...formData,
                 project_code: project.code
             });
+
+            // Save local session
+            const today = new Date().toISOString().split('T')[0];
+            await AsyncStorage.setItem('lastCheckInDate', today);
+            if (res.data.id) {
+                await AsyncStorage.setItem('currentWorkerLogId', res.data.id.toString());
+            }
+
             setSuccess(true);
         } catch (err) {
             console.error('[MobileForm] Submission Error:', err);
@@ -119,6 +180,10 @@ const MobileForm = ({ navigation }) => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSkipToList = () => {
+        navigation.navigate('WorkerListScreen');
     };
 
     const isDateRestricted = (dateStr) => {
@@ -150,77 +215,15 @@ const MobileForm = ({ navigation }) => {
         }
     };
 
-    const handleTimeOutChange = (event, selectedTime) => {
-        setShowTimeOutPicker(false);
-        if (selectedTime) {
-            const hours = selectedTime.getHours().toString().padStart(2, '0');
-            const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
-            setFormData({ ...formData, time_out: `${hours}:${minutes}` });
-        }
-    };
-
-    const submitPermissionRequest = async () => {
-        if (!formData.name) {
-            Alert.alert('Incomplete Form', 'Please enter your name first');
-            return;
-        }
-        try {
-            const res = await api.post('/requests', {
-                project_code: project.code,
-                user_name: formData.name,
-                requested_date: restrictedDate,
-                reason: formData.reason || 'Needed for log'
-            });
-            setPermissionRequestId(res.data.id);
-            setPermissionStatus('pending');
-            const interval = setInterval(() => checkRequestStatus(res.data.id), 3000);
-            setCheckInterval(interval);
-        } catch (err) {
-            Alert.alert('Error', 'Failed to submit request');
-        }
-    };
-
-    const checkRequestStatus = async (id) => {
-        try {
-            const res = await api.get(`/requests/${id}`);
-            if (res.data.status === 'approved') {
-                setPermissionStatus('approved');
-                setShowPermissionModal(false);
-                if (checkInterval) clearInterval(checkInterval);
-            } else if (res.data.status === 'rejected') {
-                setPermissionStatus('rejected');
-                if (checkInterval) clearInterval(checkInterval);
-            }
-        } catch (err) {
-            console.error('Polling error', err);
-        }
-    };
 
     useEffect(() => {
-        return () => {
-            if (checkInterval) clearInterval(checkInterval);
-        };
-    }, [checkInterval]);
+        if (success) {
+            // Auto redirect after a short delay or immediately
+            navigation.replace('WorkerListScreen');
+        }
+    }, [success]);
 
-    if (!project) return <ActivityIndicator style={{ flex: 1 }} />;
-
-    if (success) {
-        return (
-            <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center p-6 text-center">
-                <StyledView className="bg-cyan-100 p-6 rounded-full border border-cyan-200 shadow-sm mb-6">
-                    <CheckCircle size={48} color="#00afca" />
-                </StyledView>
-                <StyledText className="text-2xl font-bold text-gray-900 mb-2">Submission Successful</StyledText>
-                <StyledText className="text-gray-500 mb-8 text-center px-4">Your daily log has been recorded securely in the Attendance System.</StyledText>
-                <StyledTouchableOpacity
-                    onPress={() => navigation.navigate('Landing')}
-                    className="bg-primary py-4 px-12 rounded-2xl shadow-lg border-b-4 border-secondary"
-                >
-                    <StyledText className="text-white font-bold text-lg">Return to Home</StyledText>
-                </StyledTouchableOpacity>
-            </SafeAreaView>
-        );
-    }
+    // ... (rest of logic)
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }}>
@@ -230,8 +233,8 @@ const MobileForm = ({ navigation }) => {
                         <ArrowLeft size={20} color="#64748b" />
                     </StyledTouchableOpacity>
                     <StyledView>
-                        <StyledText className="text-xs font-bold text-primary uppercase leading-none mb-1">{project.code}</StyledText>
-                        <StyledText className="text-lg font-bold text-slate-900 leading-none" numberOfLines={1}>{project.name}</StyledText>
+                        <StyledText className="text-xs font-bold text-primary uppercase leading-none mb-1">{project?.code || '...'}</StyledText>
+                        <StyledText className="text-lg font-bold text-slate-900 leading-none" numberOfLines={1}>{project?.name || 'Loading...'}</StyledText>
                     </StyledView>
                 </StyledView>
                 <Image
@@ -354,6 +357,13 @@ const MobileForm = ({ navigation }) => {
                     ) : (
                         <StyledText className="text-white font-bold text-xl">Submit Digital Log</StyledText>
                     )}
+                </StyledTouchableOpacity>
+
+                <StyledTouchableOpacity
+                    onPress={handleSkipToList}
+                    className="py-3"
+                >
+                    <StyledText className="text-slate-500 font-bold text-center">Already checked in? View Site List</StyledText>
                 </StyledTouchableOpacity>
             </StyledScrollView>
 

@@ -5,7 +5,7 @@ module.exports = {
             colors: {
                 primary: '#2b4594', // Corporate Blue
                 secondary: '#1e293b', // Dark Navy
-                accent: '#60a5fa', // Soft Blue
+                // accent: '#60a5fa', // Soft Blue
             }
         },
     },

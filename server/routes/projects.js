@@ -156,32 +156,42 @@ router.delete('/:id', verifyToken, (req, res) => {
         const projectCode = project.code;
         console.log(`[DeleteProject] Found project code: ${projectCode}`);
 
-        // Start a transaction if possible, or just run them sequentially
-        const deleteLogs = db.prepare('DELETE FROM logs WHERE project_id = ?');
-        const deleteDateReq = db.prepare('DELETE FROM date_requests WHERE project_code = ?');
-        const deleteStaffPins = db.prepare('DELETE FROM staff_pins WHERE project_id = ?');
-        const deleteProject = db.prepare('DELETE FROM projects WHERE id = ?');
+        // Execute deletions within a transaction for safety
+        db.transaction(() => {
+            // Delete associated logs
+            const deleteLogs = db.prepare('DELETE FROM logs WHERE project_id = ?');
+            deleteLogs.run(id);
 
-        // Execute deletions
-        const logsResult = deleteLogs.run(id);
-        console.log(`[DeleteProject] Deleted ${logsResult.changes} logs`);
+            // Delete associated guards
+            const deleteGuards = db.prepare('DELETE FROM guards WHERE project_id = ?');
+            deleteGuards.run(id);
 
-        const dateReqResult = deleteDateReq.run(projectCode);
-        console.log(`[DeleteProject] Deleted ${dateReqResult.changes} date requests`);
+            // Delete associated staff_pins (using a check for table existence if needed, but we'll try/catch or just run it if we know it exists)
+            // Safer way: Check if table exists first
+            const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='staff_pins'").get();
+            if (tables) {
+                db.prepare('DELETE FROM staff_pins WHERE project_id = ?').run(id);
+            }
 
-        const staffPinsResult = deleteStaffPins.run(id);
-        console.log(`[DeleteProject] Deleted ${staffPinsResult.changes} staff pins`);
+            // Delete associated date requests
+            const deleteDateReq = db.prepare('DELETE FROM date_requests WHERE project_code = ?');
+            deleteDateReq.run(projectCode);
 
-        const result = deleteProject.run(id);
-        console.log(`[DeleteProject] Project deleted result changes: ${result.changes}`);
+            // Finally delete the project
+            const deleteProject = db.prepare('DELETE FROM projects WHERE id = ?');
+            const result = deleteProject.run(id);
 
-        if (result.changes === 0) {
-            return res.status(404).json({ error: 'Project not found' });
-        }
+            if (result.changes === 0) {
+                throw new Error('Project not found');
+            }
+        })();
 
         res.json({ message: 'Project and all associated data deleted successfully' });
     } catch (err) {
         console.error('[DeleteProject] Error during deletion:', err);
+        if (err.message === 'Project not found') {
+            return res.status(404).json({ error: 'Project not found' });
+        }
         res.status(500).json({ error: 'Database error: ' + err.message });
     }
 });

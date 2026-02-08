@@ -9,7 +9,7 @@ const PROD_URL = 'https://attendence-app-uzvt.onrender.com/api';
 // IMPORTANT: If testing on a physical phone, you MUST use your local IP, not localhost.
 const DEV_URL = 'http://192.168.100.173:5000/api';
 
-const API_BASE_URL = DEV_URL; // Toggle to PROD_URL for live app
+const API_BASE_URL = PROD_URL; // Toggle to PROD_URL for live app
 
 const api = axios.create({
     baseURL: API_BASE_URL,
