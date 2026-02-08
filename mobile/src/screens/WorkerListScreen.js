@@ -18,6 +18,8 @@ const WorkerListScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [checkoutLoading, setCheckoutLoading] = useState(null); // ID of worker being processed
     const [currentLogId, setCurrentLogId] = useState(null);
+    const [lastCheckInName, setLastCheckInName] = useState(null);
+    const [lastCheckInCar, setLastCheckInCar] = useState(null);
 
     // For Undo Functionality
     const [showUndoModal, setShowUndoModal] = useState(false);
@@ -30,7 +32,14 @@ const WorkerListScreen = ({ navigation }) => {
         try {
             const p = await AsyncStorage.getItem('currentProject');
             const logId = await AsyncStorage.getItem('currentWorkerLogId');
+            const name = await AsyncStorage.getItem('lastCheckInName');
+            const car = await AsyncStorage.getItem('lastCheckInCar');
+
+            console.log('[WorkerList] Loaded storage:', { logId, name, car });
+
             if (logId) setCurrentLogId(logId);
+            if (name) setLastCheckInName(name);
+            if (car) setLastCheckInCar(car);
 
             if (!p) {
                 navigation.replace('Landing');
@@ -148,41 +157,46 @@ const WorkerListScreen = ({ navigation }) => {
         fetchRecentLogs();
     };
 
-    const renderWorkerItem = ({ item }) => (
-        <StyledTouchableOpacity
-            onPress={() => {
-                if (item.id.toString() === currentLogId) {
-                    handleCheckout(item);
-                }
-            }}
-            className={`bg-white p-4 rounded-2xl mb-3 shadow-sm border ${item.id.toString() === currentLogId ? 'border-primary' : 'border-slate-100'} flex-row items-center justify-between`}
-            disabled={checkoutLoading === item.id || item.id.toString() !== currentLogId}
-        >
-            <StyledView className="flex-row items-center flex-1">
-                <StyledView className="bg-blue-50 p-3 rounded-full mr-4">
-                    <User size={24} color="#2b4594" />
+    const renderWorkerItem = ({ item }) => {
+        const isSelf = item.id.toString() === currentLogId ||
+            (item.name === lastCheckInName && item.car_reg === lastCheckInCar);
+
+        return (
+            <StyledTouchableOpacity
+                onPress={() => {
+                    if (isSelf) {
+                        handleCheckout(item);
+                    }
+                }}
+                className={`bg-white p-4 rounded-2xl mb-3 shadow-sm border ${isSelf ? 'border-primary' : 'border-slate-100'} flex-row items-center justify-between`}
+                disabled={checkoutLoading === item.id || !isSelf}
+            >
+                <StyledView className="flex-row items-center flex-1">
+                    <StyledView className="bg-blue-50 p-3 rounded-full mr-4">
+                        <User size={24} color="#2b4594" />
+                    </StyledView>
+                    <StyledView>
+                        <StyledText className="text-lg font-bold text-slate-800">{item.name}</StyledText>
+                        <StyledText className="text-slate-500 text-xs">{item.trade} • {item.car_reg}</StyledText>
+                    </StyledView>
                 </StyledView>
-                <StyledView>
-                    <StyledText className="text-lg font-bold text-slate-800">{item.name}</StyledText>
-                    <StyledText className="text-slate-500 text-xs">{item.trade} • {item.car_reg}</StyledText>
-                </StyledView>
-            </StyledView>
-            <StyledView className="items-end">
-                <StyledView className="bg-green-50 px-2 py-1 rounded-md mb-1">
-                    <StyledText className="text-green-700 font-bold text-xs">{item.time_in}</StyledText>
-                </StyledView>
-                {checkoutLoading === item.id ? (
-                    <ActivityIndicator size="small" color="#ef4444" />
-                ) : (
-                    item.id.toString() === currentLogId ? (
-                        <StyledText className="text-red-500 font-bold text-xs">Tap to Out</StyledText>
+                <StyledView className="items-end">
+                    <StyledView className="bg-green-50 px-2 py-1 rounded-md mb-1">
+                        <StyledText className="text-green-700 font-bold text-xs">{item.time_in}</StyledText>
+                    </StyledView>
+                    {checkoutLoading === item.id ? (
+                        <ActivityIndicator size="small" color="#ef4444" />
                     ) : (
-                        <StyledText className="text-slate-400 font-bold text-xs">On Site</StyledText>
-                    )
-                )}
-            </StyledView>
-        </StyledTouchableOpacity>
-    );
+                        isSelf ? (
+                            <StyledText className="text-red-500 font-bold text-xs">Tap to Out</StyledText>
+                        ) : (
+                            <StyledText className="text-slate-400 font-bold text-xs">On Site</StyledText>
+                        )
+                    )}
+                </StyledView>
+            </StyledTouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }}>

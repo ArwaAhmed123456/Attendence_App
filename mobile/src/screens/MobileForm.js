@@ -169,6 +169,8 @@ const MobileForm = ({ navigation }) => {
             await AsyncStorage.setItem('lastCheckInDate', today);
             if (res.data.id) {
                 await AsyncStorage.setItem('currentWorkerLogId', res.data.id.toString());
+                await AsyncStorage.setItem('lastCheckInName', formData.name);
+                await AsyncStorage.setItem('lastCheckInCar', formData.car_reg);
             }
 
             setSuccess(true);
@@ -371,8 +373,8 @@ const MobileForm = ({ navigation }) => {
             <Modal visible={showPermissionModal} transparent animationType="fade">
                 <StyledView className="flex-1 bg-slate-900/80 justify-center p-6 backdrop-blur-sm">
                     <StyledView className="bg-white rounded-3xl p-8 items-center shadow-2xl">
-                        <StyledView className="bg-cyan-100 p-5 rounded-full mb-4">
-                            <Calendar size={48} color="#00afca" />
+                        <StyledView className="bg-blue-100 p-5 rounded-full mb-4">
+                            <Calendar size={48} color="#2b4594" />
                         </StyledView>
                         <StyledText className="text-2xl font-bold text-slate-900">Approval Required</StyledText>
                         <StyledText className="text-slate-500 text-center mt-3 text-base leading-relaxed">
@@ -383,7 +385,7 @@ const MobileForm = ({ navigation }) => {
                             <StyledView className="w-full mt-8">
                                 <StyledTouchableOpacity
                                     onPress={submitPermissionRequest}
-                                    className="bg-primary py-4 rounded-2xl shadow-lg shadow-cyan-200 border-b-2 border-secondary"
+                                    className="bg-primary py-4 rounded-2xl shadow-lg shadow-blue-200 border-b-2 border-secondary"
                                 >
                                     <StyledText className="text-white text-center font-bold text-lg">Send Request</StyledText>
                                 </StyledTouchableOpacity>
@@ -401,7 +403,7 @@ const MobileForm = ({ navigation }) => {
 
                         {permissionStatus === 'pending' && (
                             <StyledView className="mt-8 items-center">
-                                <ActivityIndicator color="#00afca" size="large" />
+                                <ActivityIndicator color="#2b4594" size="large" />
                                 <StyledText className="font-bold text-slate-800 text-lg mt-4 text-center">Waiting for Site Manager...</StyledText>
                                 <StyledText className="text-sm text-slate-400 mt-2 text-center text-center">This window will close automatically once approved.</StyledText>
                             </StyledView>
