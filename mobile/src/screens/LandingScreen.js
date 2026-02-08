@@ -103,13 +103,11 @@ const LandingScreen = ({ navigation }) => {
             <StyledView className="flex-1 justify-center items-center p-6">
                 <StyledView className="w-full max-w-sm">
                     <StyledView className="items-center mb-8">
-                        <StyledView className="mb-4">
-                            <Image
-                                source={require('../../assets/attendence_logo.png')}
-                                style={{ width: 120, height: 120 }}
-                                resizeMode="contain"
-                            />
-                        </StyledView>
+                        <Image
+                            source={require('../../assets/square-image.png')}
+                            style={{ width: 120, height: 120 }}
+                            resizeMode="contain"
+                        />
                         <StyledText className="text-3xl font-extrabold text-slate-900 tracking-tight">Attendance Pro</StyledText>
                         <StyledText className="text-slate-500 mt-1 font-medium italic">Project Worker Access</StyledText>
                     </StyledView>

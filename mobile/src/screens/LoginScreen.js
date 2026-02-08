@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
@@ -41,9 +41,11 @@ const LoginScreen = ({ navigation }) => {
 
                 <StyledView className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100">
                     <StyledView className="items-center mb-8">
-                        <StyledView className="bg-blue-100 p-4 rounded-full">
-                            <Lock size={40} color="#2b4594" />
-                        </StyledView>
+                        <Image
+                            source={require('../../assets/square-image.png')}
+                            style={{ width: 120, height: 120 }}
+                            resizeMode="contain"
+                        />
                     </StyledView>
 
                     <StyledText className="text-3xl font-bold text-center mb-8 text-gray-800">Admin Login</StyledText>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Modal, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Modal, RefreshControl, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, User, Clock, LogOut, RotateCcw, Plus, Search, AlertCircle, CheckCircle } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -202,9 +202,16 @@ const WorkerListScreen = ({ navigation }) => {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }}>
             {/* Header */}
             <StyledView className="bg-white px-5 py-4 flex-row items-center justify-between shadow-sm z-10">
-                <StyledView>
-                    <StyledText className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Site</StyledText>
-                    <StyledText className="text-xl font-extrabold text-slate-900">{project?.name || 'Loading...'}</StyledText>
+                <StyledView className="flex-row items-center gap-3">
+                    <Image
+                        source={require('../../assets/square-image.png')}
+                        style={{ width: 50, height: 50 }}
+                        resizeMode="contain"
+                    />
+                    <StyledView>
+                        <StyledText className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Site</StyledText>
+                        <StyledText className="text-xl font-extrabold text-slate-900">{project?.name || 'Loading...'}</StyledText>
+                    </StyledView>
                 </StyledView>
                 <StyledView className="flex-row items-center gap-2">
                     <StyledTouchableOpacity

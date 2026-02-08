@@ -240,8 +240,9 @@ const MobileForm = ({ navigation }) => {
                     </StyledView>
                 </StyledView>
                 <Image
-                    source={require('../../assets/attendence_logo.png')}
-                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                    source={require('../../assets/square-image.png')}
+                    style={{ width: 60, height: 60 }}
+                    resizeMode="contain"
                 />
             </StyledView>
 
